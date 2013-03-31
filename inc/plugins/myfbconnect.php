@@ -249,6 +249,20 @@ function myfbconnect_run($userdata) {
 				"uid" => $registered['uid'],
 			);
 			$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
+			
+			$syncData = array(
+				"myfb_uid" => $user['id']
+				);
+			
+			if(!$registered['avatar']) {
+				list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
+				$syncData["avatar"] = "http://graph.facebook.com/{$user['id']}/picture?type=large";
+				$syncData["avatardimensions"] = $maxwidth."|".$maxheight;
+				$syncData["avatartype"] = "remote";
+			}
+			
+			$db->update_query("users", $syncData, "email = '{$user['email']}'");
+			
 			my_setcookie("mybbuser", $registered['uid']."_".$registered['loginkey'], null, true);
 			my_setcookie("sid", $session->sid, -1, true);
 		}
@@ -297,6 +311,21 @@ function myfbconnect_run($userdata) {
 			"uid" => $facebookID['uid'],
 		);
 		$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
+		
+		$syncData = array();
+		
+		if(!$facebookID['avatar']) {
+			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
+			$syncData = array(
+				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
+				"avatardimensions" => $maxwidth."|".$maxheight,
+				"avatartype" => "remote"
+				);
+		}
+		
+		if(!empty($syncData)) {
+			$db->update_query("users", $syncData, "uid = '{$facebookID['uid']}'");
+		}
 		
 		my_setcookie("mybbuser", $facebookID['uid']."_".$facebookID['loginkey'], null, true);
 		my_setcookie("sid", $session->sid, -1, true);
