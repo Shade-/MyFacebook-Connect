@@ -10,3 +10,5 @@ $l['myfbconnect_settings_appid'] = "App ID";
 $l['myfbconnect_settings_appid_desc'] = "Enter your App ID taken from Facebook Developers site. This will be used together with the secret token to ask authorizations to your users through your app.";
 $l['myfbconnect_settings_appsecret'] = "App Secret";
 $l['myfbconnect_settings_appsecret_desc'] = "Enter your App ID taken from Facebook Developers site. This will be used together with the secret token to ask authorizations to your users through your app.";
+$l['myfbconnect_settings_usergroup'] = "After registration usergroup";
+$l['myfbconnect_settings_usergroup_desc'] = "Enter the usergroup ID you want the new users to be when they register with Facebook. By default this value is set to 2, which equals to Registered usergroup.";

@@ -75,6 +75,12 @@ function myfbconnect_install()
             'description' => $lang->myfbconnect_settings_appsecret_desc,
             'value' => '',
             'optionscode' => 'text'
+        ),
+        'usergroup' => array(
+            'title' => $lang->myfbconnect_settings_usergroup,
+            'description' => $lang->myfbconnect_settings_usergroup_desc,
+            'value' => '2',
+            'optionscode' => 'text'
         )
     ));
 	
@@ -238,16 +244,56 @@ function myfbconnect_run($userdata) {
 		// this user is already registered with us, just link its account with his facebook and log him in
 		if($registered) {
 			$db->query("UPDATE ".TABLE_PREFIX."users SET myfb_uid = {$user['id']} WHERE email = '{$user['email']}'");
+			$db->delete_query("sessions", "ip='".$db->escape_string($session->ipaddress)."' AND sid != '".$session->sid."'");
+			$newsession = array(
+				"uid" => $registered['uid'],
+			);
+			$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
 			my_setcookie("mybbuser", $registered['uid']."_".$registered['loginkey'], null, true);
+			my_setcookie("sid", $session->sid, -1, true);
 		}
 		// this user isn't registered with us, so we have to register it
 		else {
-			myfbconnect_debug($user);
+			require_once  MYBB_ROOT."inc/datahandlers/user.php";
+			$userhandler = new UserDataHandler("insert");
+			
+			$password = random_str(8);
+			
+			$newUser = array(
+				"username" => $user['name'],
+				"password" => $password,
+				"password2" => $password,
+				"email" => $user['email'],
+				"email2" => $user['email'],
+				"usergroup" => $mybb->settings['myfbconnect_usergroup'],
+				"profile_fields_editable" => true,
+				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
+				"avatardimensions" => "100|100",
+				"avatartype" => "remote",
+				);
+				
+			$userhandler->set_data($newUser);
+			if($userhandler->validate_user())
+			{
+				$newUserData = $userhandler->insert_user();
+				$db->query("UPDATE ".TABLE_PREFIX."users SET myfb_uid = {$user['id']} WHERE uid = '{$newUserData['uid']}'");
+			}
+			
+			// after registration we have to logn this new user in
+			my_setcookie("mybbuser", $newUserData['uid']."_".$newUserData['loginkey'], null, true);
+			redirect("index.php", $lang->redirect_registered);
 		}
 	}
-	// this user has already a linked-to-facebook account, just log him in and redirect :)
+	// this user has already a linked-to-facebook account, just log him in and update session
 	else {
+		$db->delete_query("sessions", "ip='".$db->escape_string($session->ipaddress)."' AND sid != '".$session->sid."'");
+		$newsession = array(
+			"uid" => $facebookID['uid'],
+		);
+		$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
+		
 		my_setcookie("mybbuser", $facebookID['uid']."_".$facebookID['loginkey'], null, true);
+		my_setcookie("sid", $session->sid, -1, true);
 		redirect("index.php", $lang->redirect_loggedin);
 	}
 	
