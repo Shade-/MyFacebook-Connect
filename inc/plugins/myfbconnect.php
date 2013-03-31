@@ -78,6 +78,9 @@ function myfbconnect_install()
         )
     ));
 	
+	// insert our Facebook ID column into the database
+	$db->query("ALTER TABLE ".TABLE_PREFIX."users ADD `myfb_uid` bigint(50) NOT NULL");
+	
 	// create cache
 	$info = myfbconnect_info();
 	$shadePlugins = $cache->read('shade_plugins');
@@ -93,7 +96,11 @@ function myfbconnect_install()
 
 function myfbconnect_uninstall()
 {
-	global $db, $PL, $cache;
+	global $db, $PL, $cache, $lang;
+	
+	if (!$lang->myfbconnect) {
+		$lang->load('myfbconnect');
+	}
 	
 	if (!file_exists(PLUGINLIBRARY)) {
 		flash_message($lang->myfbconnect_pluginlibrary_missing, "error");
@@ -103,6 +110,9 @@ function myfbconnect_uninstall()
 	$PL or require_once PLUGINLIBRARY;
 	
 	$PL->settings_delete('myfbconnect');
+	
+	// delete our Facebook ID column
+	$db->query("ALTER TABLE ".TABLE_PREFIX."users drop `myfb_uid`");
 	
 	$info = myfbconnect_info();
 	// delete the plugin from cache
@@ -116,8 +126,136 @@ function myfbconnect_uninstall()
 global $mybb, $settings;
 
 if ($settings['myfbconnect_enabled']) {
-	$plugins->add_hook('member_do_register_end', 'myfbconnect_run');
+	$plugins->add_hook('pre_output_page', 'myfbconnect_pre_output');
+	$plugins->add_hook('index_end', 'myfbconnect_index_end');
 }
 
-function myfbconnect_run() {
+function myfbconnect_pre_output(&$contents) {
+	
+	global $mybb;
+	
+	$loginUrl = $mybb->settings['bburl']."/index.php?action=fblogin";
+	$loginUrl = "<a href=\"{$loginUrl}\">Facebook Login</a>";
+	
+	$contents = str_replace('<fblogintest>', $loginUrl, $contents);
+
+    return $contents;
+}
+
+function myfbconnect_index_end() {
+	
+	global $mybb, $lang;
+	
+	if (!$lang->myfbconnect) {
+		$lang->load('myfbconnect');
+	}
+	
+	$appID = $mybb->settings['myfbconnect_appid'];
+	$appSecret = $mybb->settings['myfbconnect_appsecret'];
+	
+	// store some defaults
+	$do_loginUrl = $mybb->settings['bburl']."/index.php?action=do_fblogin";
+	$redirectUrl = $_SERVER['HTTP_REFERER'];
+	
+	$loginUrl = "<a href=\"{$loginUrl}\">Facebook Login</a>";
+	
+	// include our API
+	try{
+		include_once MYBB_ROOT."myfbconnect/src/facebook.php";
+	} catch(Exception $e) {
+		error_log($e);
+	}
+	
+	// Create our application instance
+	$facebook = new Facebook(array(
+		'appId'		=> $appID,
+		'secret'	=> $appSecret,
+	));
+	
+	// start all the magic
+	if($mybb->input['action'] == "fblogin") {
+		
+		// empty configuration
+		if(empty($appID) OR empty($appSecret)) {
+			error($lang->myfbconnect_error_noconfigfound);
+		}
+		
+		// get the true login url
+		$_loginUrl = $facebook->getLoginUrl(array(
+			'scope' => 'user_birthday, user_location, email',
+			'redirect_uri' => $do_loginUrl
+		));
+		
+		// redirect to ask for permissions or to login if the user already granted them
+		header("Location: ".$_loginUrl);
+	}
+	
+	// don't stop the magic
+	if($mybb->input['action'] == "do_fblogin") {
+		// get the user
+		$user = $facebook->getUser();
+		// guest detected!
+		if(!$mybb->user['uid']) {
+			if($user) {
+				// user found and logged in
+				try {
+					// get the user public data
+					$userdata = $facebook->api("/me");
+					// let our handler do all the hard work
+					myfbconnect_run($userdata);
+					header("Location: ".$redirectUrl);
+				}
+				// user found, but permissions denied
+				catch(FacebookApiException $e) {
+					$user = NULL;
+				}
+			}
+			if(!$user) {
+				error($lang->myfbconnect_error_noauth);
+			}
+		}
+		// user detected!
+		else {
+		}
+	}
+}
+
+function myfbconnect_run($userdata) {
+	
+	global $mybb, $db, $session, $lang;
+	
+	$user = $userdata;
+	
+	// See if this user is already present in our database
+	$query = $db->simple_select("users", "*", "myfb_uid='{$user['id']}'");
+	$facebookID = $db->fetch_array($query);
+	
+	// this user hasn't a linked-to-facebook account yet
+	if(!$facebookID) {
+		// link the Facebook ID to our user if found, searching for the same email
+		$query = $db->simple_select("users", "*", "email='{$user['email']}'");
+		$registered = $db->fetch_array($query);
+		// this user is already registered with us, just link its account with his facebook and log him in
+		if($registered) {
+			$db->query("UPDATE ".TABLE_PREFIX."users SET myfb_uid = {$user['id']} WHERE email = '{$user['email']}'");
+			my_setcookie("mybbuser", $registered['uid']."_".$registered['loginkey'], null, true);
+		}
+		// this user isn't registered with us, so we have to register it
+		else {
+			myfbconnect_debug($user);
+		}
+	}
+	// this user has already a linked-to-facebook account, just log him in and redirect :)
+	else {
+		my_setcookie("mybbuser", $facebookID['uid']."_".$facebookID['loginkey'], null, true);
+		redirect("index.php", $lang->redirect_loggedin);
+	}
+	
+}
+
+function myfbconnect_debug($data) {
+	echo "<pre>";
+	echo print_r($data);
+	echo "</pre>";
+	exit;
 }
