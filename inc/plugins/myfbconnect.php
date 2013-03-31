@@ -266,9 +266,7 @@ function myfbconnect_run($userdata) {
 				"email" => $user['email'],
 				"email2" => $user['email'],
 				"usergroup" => $mybb->settings['myfbconnect_usergroup'],
-				"profile_fields_editable" => true,
 				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
-				"avatardimensions" => "100|100",
 				"avatartype" => "remote",
 				);
 				
@@ -276,8 +274,16 @@ function myfbconnect_run($userdata) {
 			if($userhandler->validate_user())
 			{
 				$newUserData = $userhandler->insert_user();
-				$db->query("UPDATE ".TABLE_PREFIX."users SET myfb_uid = {$user['id']} WHERE uid = '{$newUserData['uid']}'");
 			}
+			
+			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
+			
+			$extraData = array(
+				"avatardimensions" => $maxwidth."|".$maxheight,
+				"myfb_uid" => $user['id']
+				);
+				
+			$db->update_query("users", $extraData, "uid = {$newUserData['uid']}");
 			
 			// after registration we have to logn this new user in
 			my_setcookie("mybbuser", $newUserData['uid']."_".$newUserData['loginkey'], null, true);
