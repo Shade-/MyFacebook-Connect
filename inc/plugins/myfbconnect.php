@@ -76,11 +76,31 @@ function myfbconnect_install()
 			'value' => '',
 			'optionscode' => 'text'
 		),
+		'fastregistration' => array(
+			'title' => $lang->myfbconnect_settings_fastregistration,
+			'description' => $lang->myfbconnect_settings_fastregistration_desc,
+			'value' => '1',
+		),
 		'usergroup' => array(
 			'title' => $lang->myfbconnect_settings_usergroup,
 			'description' => $lang->myfbconnect_settings_usergroup_desc,
 			'value' => '2',
 			'optionscode' => 'text'
+		),
+		'passwordpm' => array(
+			'title' => $lang->myfbconnect_settings_passwordpm,
+			'description' => $lang->myfbconnect_settings_passwordpm_desc,
+			'value' => '1',
+		),
+		'requestpublishingperms' => array(
+			'title' => $lang->myfbconnect_settings_requestpublishingperms,
+			'description' => $lang->myfbconnect_settings_requestpublishingperms_desc,
+			'value' => '1',
+		),
+		'dialog' => array(
+			'title' => $lang->myfbconnect_settings_dialog,
+			'description' => $lang->myfbconnect_settings_dialog_desc,
+			'value' => '1',
 		)
 	));
 	
@@ -95,6 +115,10 @@ function myfbconnect_install()
 		'version' => $info['version']
 	);
 	$cache->update('shade_plugins', $shadePlugins);
+	
+	require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
+	
+	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a>').'#i', '{$lang->welcome_register}</a> &mdash; <facebooklogin>');
 	
 	rebuild_settings();
 	
@@ -125,6 +149,11 @@ function myfbconnect_uninstall()
 	$shadePlugins = $cache->read('shade_plugins');
 	unset($shadePlugins[$info['name']]);
 	$cache->update('shade_plugins', $shadePlugins);
+	
+	require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
+	
+	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a> &mdash; <facebooklogin>').'#i', '');
+	
 	// rebuild settings
 	rebuild_settings();
 }
@@ -190,9 +219,13 @@ function myfbconnect_index_end()
 			error($lang->myfbconnect_error_noconfigfound);
 		}
 		
+		if ($mybb->settings['myfbconnect_requestpublishingperms']) {
+			$extraPermissions = ", publish_stream";
+		}
+		
 		// get the true login url
 		$_loginUrl = $facebook->getLoginUrl(array(
-			'scope' => 'user_birthday, user_location, email, publish_stream',
+			'scope' => 'user_birthday, user_location, email{$extraPermissions}',
 			'redirect_uri' => $do_loginUrl
 		));
 		
@@ -267,14 +300,14 @@ function myfbconnect_run($userdata)
 			
 			my_setcookie("mybbuser", $registered['uid'] . "_" . $registered['loginkey'], null, true);
 			my_setcookie("sid", $session->sid, -1, true);
-			redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
+			redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $registered['name']));
 		}
 		// this user isn't registered with us, so we have to register it
 		else {
 			require_once MYBB_ROOT . "inc/datahandlers/user.php";
 			$userhandler = new UserDataHandler("insert");
 			
-			$password = random_str(8);
+			$password = "123456";
 			
 			$newUser = array(
 				"username" => $user['name'],
@@ -351,7 +384,7 @@ function myfbconnect_run($userdata)
 		
 		my_setcookie("mybbuser", $facebookID['uid'] . "_" . $facebookID['loginkey'], null, true);
 		my_setcookie("sid", $session->sid, -1, true);
-		redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
+		redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $facebookID['username']));
 	}
 	
 }
@@ -381,7 +414,7 @@ function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
 	
 	// avatar
 	if (!empty($fbdata['id']) AND (empty($user['avatar']) OR $bypass)) {
-		$userData["avatar"] = "http://graph.facebook.com/{$fbdata['id']}/picture?type=large";
+		$userData["avatar"] = $db->escape_string("http://graph.facebook.com/{$fbdata['id']}/picture?type=large");
 		$userData["avatartype"] = "remote";
 
 		// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
@@ -443,6 +476,13 @@ function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
 	return true;
 	
 }
+
+/**
+ * Debugs any type of data.
+ * 
+ * @param mixed The data to debug.
+ * @return mixed The debugged data.
+ **/
 
 function myfbconnect_debug($data)
 {
