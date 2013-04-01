@@ -375,7 +375,7 @@ function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
 		}
 	}
 	
-	$plugins->run_hooks("myfbconnect_sync_end");
+	$plugins->run_hooks("myfbconnect_sync_end", &$userData);
 	
 	// let's do it!
 	if (!empty($userData) AND !empty($user['uid'])) {
