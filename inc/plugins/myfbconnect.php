@@ -21,14 +21,14 @@ if (!defined("PLUGINLIBRARY")) {
 function myfbconnect_info()
 {
 	return array(
-		'name'			=>	'MyFacebook Connect',
-		'description'	=>	'Integrates MyBB with Facebook, featuring login and registration.',
-		'website'		=>	'https://github.com/Shade-/MyFacebookConnect',
-		'author'		=>	'Shade',
-		'authorsite'	=>	'http://www.idevicelab.net/forum',
-		'version'		=>	'alpha 1',
-		'compatibility'	=>	'16*',
-		'guid'			=>	'none... yet'
+		'name' => 'MyFacebook Connect',
+		'description' => 'Integrates MyBB with Facebook, featuring login and registration.',
+		'website' => 'https://github.com/Shade-/MyFacebookConnect',
+		'author' => 'Shade',
+		'authorsite' => 'http://www.idevicelab.net/forum',
+		'version' => 'alpha 1',
+		'compatibility' => '16*',
+		'guid' => 'none... yet'
 	);
 }
 
@@ -46,53 +46,53 @@ function myfbconnect_is_installed()
 function myfbconnect_install()
 {
 	global $db, $PL, $lang, $mybb, $cache;
-		
+	
 	if (!$lang->myfbconnect) {
 		$lang->load('myfbconnect');
 	}
 	
-    if (!file_exists(PLUGINLIBRARY)) {
-        flash_message($lang->myfbconnect_pluginlibrary_missing, "error");
-        admin_redirect("index.php?module=config-plugins");
-    }
-    
-    $PL or require_once PLUGINLIBRARY;
-    
-    $PL->settings('myfbconnect', $lang->myfbconnect_settings, $lang->myfbconnect_settings_desc, array(
-        'enabled' => array(
-            'title' => $lang->myfbconnect_settings_enable,
-            'description' => $lang->myfbconnect_settings_enable_desc,
-            'value' => '1'
-        ),
-        'appid' => array(
-            'title' => $lang->myfbconnect_settings_appid,
-            'description' => $lang->myfbconnect_settings_appid_desc,
-            'value' => '',
-            'optionscode' => 'text'
-        ),
-        'appsecret' => array(
-            'title' => $lang->myfbconnect_settings_appsecret,
-            'description' => $lang->myfbconnect_settings_appsecret_desc,
-            'value' => '',
-            'optionscode' => 'text'
-        ),
-        'usergroup' => array(
-            'title' => $lang->myfbconnect_settings_usergroup,
-            'description' => $lang->myfbconnect_settings_usergroup_desc,
-            'value' => '2',
-            'optionscode' => 'text'
-        )
-    ));
+	if (!file_exists(PLUGINLIBRARY)) {
+		flash_message($lang->myfbconnect_pluginlibrary_missing, "error");
+		admin_redirect("index.php?module=config-plugins");
+	}
+	
+	$PL or require_once PLUGINLIBRARY;
+	
+	$PL->settings('myfbconnect', $lang->myfbconnect_settings, $lang->myfbconnect_settings_desc, array(
+		'enabled' => array(
+			'title' => $lang->myfbconnect_settings_enable,
+			'description' => $lang->myfbconnect_settings_enable_desc,
+			'value' => '1'
+		),
+		'appid' => array(
+			'title' => $lang->myfbconnect_settings_appid,
+			'description' => $lang->myfbconnect_settings_appid_desc,
+			'value' => '',
+			'optionscode' => 'text'
+		),
+		'appsecret' => array(
+			'title' => $lang->myfbconnect_settings_appsecret,
+			'description' => $lang->myfbconnect_settings_appsecret_desc,
+			'value' => '',
+			'optionscode' => 'text'
+		),
+		'usergroup' => array(
+			'title' => $lang->myfbconnect_settings_usergroup,
+			'description' => $lang->myfbconnect_settings_usergroup_desc,
+			'value' => '2',
+			'optionscode' => 'text'
+		)
+	));
 	
 	// insert our Facebook ID column into the database
-	$db->query("ALTER TABLE ".TABLE_PREFIX."users ADD `myfb_uid` bigint(50) NOT NULL");
+	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD `myfb_uid` bigint(50) NOT NULL");
 	
 	// create cache
 	$info = myfbconnect_info();
 	$shadePlugins = $cache->read('shade_plugins');
 	$shadePlugins[$info['name']] = array(
-		'title'		=>	$info['name'],
-		'version'	=>	$info['version']
+		'title' => $info['name'],
+		'version' => $info['version']
 	);
 	$cache->update('shade_plugins', $shadePlugins);
 	
@@ -118,7 +118,7 @@ function myfbconnect_uninstall()
 	$PL->settings_delete('myfbconnect');
 	
 	// delete our Facebook ID column
-	$db->query("ALTER TABLE ".TABLE_PREFIX."users drop `myfb_uid`");
+	$db->query("ALTER TABLE " . TABLE_PREFIX . "users drop `myfb_uid`");
 	
 	$info = myfbconnect_info();
 	// delete the plugin from cache
@@ -136,19 +136,25 @@ if ($settings['myfbconnect_enabled']) {
 	$plugins->add_hook('index_end', 'myfbconnect_index_end');
 }
 
-function myfbconnect_pre_output(&$contents) {
+function myfbconnect_pre_output(&$contents)
+{
 	
-	global $mybb;
+	global $mybb, $lang;
 	
-	$loginUrl = $mybb->settings['bburl']."/index.php?action=fblogin";
-	$loginUrl = "<a href=\"{$loginUrl}\">Facebook Login</a>";
+	if (!$lang->myfbconnect) {
+		$lang->load('myfbconnect');
+	}
 	
-	$contents = str_replace('<fblogintest>', $loginUrl, $contents);
-
-    return $contents;
+	$loginUrl = $mybb->settings['bburl'] . "/index.php?action=fblogin";
+	$loginUrl = "<a href=\"{$loginUrl}\">{$lang->myfbconnect_login}</a>";
+	
+	$contents = str_replace('<facebooklogin>', $loginUrl, $contents);
+	
+	return $contents;
 }
 
-function myfbconnect_index_end() {
+function myfbconnect_index_end()
+{
 	
 	global $mybb, $lang;
 	
@@ -160,29 +166,30 @@ function myfbconnect_index_end() {
 	$appSecret = $mybb->settings['myfbconnect_appsecret'];
 	
 	// store some defaults
-	$do_loginUrl = $mybb->settings['bburl']."/index.php?action=do_fblogin";
+	$do_loginUrl = $mybb->settings['bburl'] . "/index.php?action=do_fblogin";
 	$redirectUrl = $_SERVER['HTTP_REFERER'];
 	
 	$loginUrl = "<a href=\"{$loginUrl}\">Facebook Login</a>";
 	
 	// include our API
-	try{
-		include_once MYBB_ROOT."myfbconnect/src/facebook.php";
-	} catch(Exception $e) {
+	try {
+		include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+	}
+	catch (Exception $e) {
 		error_log($e);
 	}
 	
 	// Create our application instance
 	$facebook = new Facebook(array(
-		'appId'		=> $appID,
-		'secret'	=> $appSecret,
+		'appId' => $appID,
+		'secret' => $appSecret
 	));
 	
 	// start all the magic
-	if($mybb->input['action'] == "fblogin") {
+	if ($mybb->input['action'] == "fblogin") {
 		
 		// empty configuration
-		if(empty($appID) OR empty($appSecret)) {
+		if (empty($appID) OR empty($appSecret)) {
 			error($lang->myfbconnect_error_noconfigfound);
 		}
 		
@@ -193,40 +200,48 @@ function myfbconnect_index_end() {
 		));
 		
 		// redirect to ask for permissions or to login if the user already granted them
-		header("Location: ".$_loginUrl);
+		header("Location: " . $_loginUrl);
 	}
 	
 	// don't stop the magic
-	if($mybb->input['action'] == "do_fblogin") {
+	if ($mybb->input['action'] == "do_fblogin") {
 		// get the user
 		$user = $facebook->getUser();
 		// guest detected!
-		if(!$mybb->user['uid']) {
-			if($user) {
+		if (!$mybb->user['uid']) {
+			if ($user) {
 				// user found and logged in
 				try {
 					// get the user public data
-					$userdata = $facebook->api("/me");
+					$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website");
 					// let our handler do all the hard work
 					myfbconnect_run($userdata);
-					header("Location: ".$redirectUrl);
 				}
 				// user found, but permissions denied
-				catch(FacebookApiException $e) {
+				catch (FacebookApiException $e) {
 					$user = NULL;
 				}
 			}
-			if(!$user) {
+			if (!$user) {
 				error($lang->myfbconnect_error_noauth);
 			}
 		}
-		// user detected!
+		// user detected, just tell him he his already logged in
 		else {
+			error($lang->myfbconnect_error_alreadyloggedin);
 		}
 	}
 }
 
-function myfbconnect_run($userdata) {
+/**
+ * Logins or registers a new user with Facebook, provided a valid ID.
+ * 
+ * @param array The user data containing all the information which are parsed and inserted into the database.
+ * @return boolean True if successful, false if unsuccessful.
+ **/
+
+function myfbconnect_run($userdata)
+{
 	
 	global $mybb, $db, $session, $lang;
 	
@@ -237,38 +252,29 @@ function myfbconnect_run($userdata) {
 	$facebookID = $db->fetch_array($query);
 	
 	// this user hasn't a linked-to-facebook account yet
-	if(!$facebookID) {
+	if (!$facebookID) {
 		// link the Facebook ID to our user if found, searching for the same email
 		$query = $db->simple_select("users", "*", "email='{$user['email']}'");
 		$registered = $db->fetch_array($query);
 		// this user is already registered with us, just link its account with his facebook and log him in
-		if($registered) {
-			$db->query("UPDATE ".TABLE_PREFIX."users SET myfb_uid = {$user['id']} WHERE email = '{$user['email']}'");
-			$db->delete_query("sessions", "ip='".$db->escape_string($session->ipaddress)."' AND sid != '".$session->sid."'");
+		if ($registered) {
+			$db->query("UPDATE " . TABLE_PREFIX . "users SET myfb_uid = {$user['id']} WHERE email = '{$user['email']}'");
+			$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");
 			$newsession = array(
-				"uid" => $registered['uid'],
+				"uid" => $registered['uid']
 			);
-			$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
+			$db->update_query("sessions", $newsession, "sid='" . $session->sid . "'");
 			
-			$syncData = array(
-				"myfb_uid" => $user['id']
-				);
+			// let it sync
+			myfbconnect_sync($registered, $user);
 			
-			if(!$registered['avatar']) {
-				list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
-				$syncData["avatar"] = "http://graph.facebook.com/{$user['id']}/picture?type=large";
-				$syncData["avatardimensions"] = $maxwidth."|".$maxheight;
-				$syncData["avatartype"] = "remote";
-			}
-			
-			$db->update_query("users", $syncData, "email = '{$user['email']}'");
-			
-			my_setcookie("mybbuser", $registered['uid']."_".$registered['loginkey'], null, true);
+			my_setcookie("mybbuser", $registered['uid'] . "_" . $registered['loginkey'], null, true);
 			my_setcookie("sid", $session->sid, -1, true);
+			redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
 		}
 		// this user isn't registered with us, so we have to register it
 		else {
-			require_once  MYBB_ROOT."inc/datahandlers/user.php";
+			require_once MYBB_ROOT . "inc/datahandlers/user.php";
 			$userhandler = new UserDataHandler("insert");
 			
 			$password = random_str(8);
@@ -282,61 +288,108 @@ function myfbconnect_run($userdata) {
 				"usergroup" => $mybb->settings['myfbconnect_usergroup'],
 				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
 				"avatartype" => "remote",
-				);
-				
+				"regip" => $session->ipaddress,
+				"longregip" => my_ip2long($session->ipaddress)
+			);
+			
 			$userhandler->set_data($newUser);
-			if($userhandler->validate_user())
-			{
+			if ($userhandler->validate_user()) {
 				$newUserData = $userhandler->insert_user();
 			}
+			// the username is already in use, let the user choose one from scratch
+			else {
+				$error = $userhandler->get_errors();
+				error($lang->sprintf($lang->myfbconnect_error_usernametaken, $error['username_exists']['data']['0']));
+			}
 			
-			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
 			
-			$extraData = array(
-				"avatardimensions" => $maxwidth."|".$maxheight,
-				"myfb_uid" => $user['id']
-				);
-				
-			$db->update_query("users", $extraData, "uid = {$newUserData['uid']}");
+	myfbconnect_debug(myfbconnect_sync($newUserData, $user));
 			
-			// after registration we have to logn this new user in
-			my_setcookie("mybbuser", $newUserData['uid']."_".$newUserData['loginkey'], null, true);
-			redirect("index.php", $lang->redirect_registered);
+			// after registration we have to log this new user in
+			my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
+			redirect("index.php", $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
 		}
 	}
 	// this user has already a linked-to-facebook account, just log him in and update session
 	else {
-		$db->delete_query("sessions", "ip='".$db->escape_string($session->ipaddress)."' AND sid != '".$session->sid."'");
+		$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");
 		$newsession = array(
-			"uid" => $facebookID['uid'],
+			"uid" => $facebookID['uid']
 		);
-		$db->update_query("sessions", $newsession, "sid='".$session->sid."'");
+		$db->update_query("sessions", $newsession, "sid='" . $session->sid . "'");
 		
-		$syncData = array();
+		// eventually sync data
+		myfbconnect_sync($facebookID, $user);
 		
-		if(!$facebookID['avatar']) {
-			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
-			$syncData = array(
-				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
-				"avatardimensions" => $maxwidth."|".$maxheight,
-				"avatartype" => "remote"
-				);
-		}
-		
-		if(!empty($syncData)) {
-			$db->update_query("users", $syncData, "uid = '{$facebookID['uid']}'");
-		}
-		
-		my_setcookie("mybbuser", $facebookID['uid']."_".$facebookID['loginkey'], null, true);
+		my_setcookie("mybbuser", $facebookID['uid'] . "_" . $facebookID['loginkey'], null, true);
 		my_setcookie("sid", $session->sid, -1, true);
-		redirect("index.php", $lang->redirect_loggedin);
+		redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
 	}
 	
 }
 
-function myfbconnect_debug($data) {
+/**
+ * Syncronizes any Facebook account with any MyBB account, importing all the infos.
+ * 
+ * @param array The existing user data. UID is required.
+ * @param array The Facebook user data to sync.
+ * @param int Whether to sync regardless of elements presence or not. Disabled by default.
+ * @return boolean True if successful, false if unsuccessful.
+ **/
+
+function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
+{
+	
+	global $mybb, $db, $session, $lang, $plugins;
+	
+	$userData = array();
+	
+	// facebook id, if empty we need to sync it
+	if (empty($user["myfb_uid"])) {
+		$userData["myfb_uid"] = $fbdata["id"];
+	}
+	// ======                     begin our checkes comparing mybb with facebook stuff                   ======
+	// ======  Syntax to use: !empty(FACEBOOK VALUE) AND (empty(EXISTING VALUE) OR $bypass) AND PATCHES  ======
+	
+	// avatar
+	if (!empty($fbdata['avatar']) AND (empty($user['avatar']) OR $bypass)) {
+		$userData["avatar"] = "http://graph.facebook.com/{$fbdata['id']}/picture?type=large";
+		$userData["avatartype"] = "remote";
+		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
+		$userData["avatardimensions"] = $maxwidth . "|" . $maxheight;
+	}
+	// birthday
+	if (!empty($fbdata['birthday']) AND (empty($user['birthday']) OR $bypass)) {
+		$birthday = explode("/", $fbdata['birthday']);
+		$birthday['0'] = ltrim($birthday['0'], '0');
+		$userData["birthday"] = $birthday['1']."-".$birthday['0']."-".$birthday['2'];
+	}
+	// cover, if Profile Picture plugin is installed
+	if (!empty($fbdata['cover']['source']) AND $db->field_exists("profilepic", "users") AND (empty($user['profilepic']) OR $bypass)) {
+		$cover = $fbdata['cover']['source'];
+		$userData["profilepic"] = str_replace('/s720x720/', '/p851x315/', $cover);
+		$userData["profilepictype"] = "remote";
+		if ($mybb->usergroup['profilepicmaxdimensions']) {
+			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->usergroup['profilepicmaxdimensions']));
+			$userData["profilepicdimensions"] = $maxwidth . "|" . $maxheight;
+		}
+	}
+	
+	$plugins->run_hooks("myfbconnect_sync_end");
+	
+	// let's do it!
+	if (!empty($userData) AND !empty($user['uid'])) {
+		$db->update_query("users", $userData, "uid = {$user['uid']}");
+	}
+	
+	return true;
+	
+}
+
+function myfbconnect_debug($data)
+{
 	echo "<pre>";
-	echo print_r($data);
+	echo var_dump($data);
 	echo "</pre>";
 	exit;
 }
