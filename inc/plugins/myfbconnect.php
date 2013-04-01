@@ -118,7 +118,7 @@ function myfbconnect_install()
 	
 	require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
 	
-	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a>').'#i', '{$lang->welcome_register}</a> &mdash; <facebooklogin>');
+	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a>').'#i', '{$lang->welcome_register}</a> &mdash; <a href="{$mybb->settings[\'bburl\']}/index.php?action=fblogin">{$lang->myfbconnect_login}</a>');
 	
 	rebuild_settings();
 	
@@ -152,7 +152,7 @@ function myfbconnect_uninstall()
 	
 	require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
 	
-	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a> &mdash; <facebooklogin>').'#i', '');
+	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a> &mdash; <a href="{$mybb->settings[\'bburl\']}/index.php?action=fblogin">{$lang->myfbconnect_login}</a>').'#i', '');
 	
 	// rebuild settings
 	rebuild_settings();
@@ -161,25 +161,16 @@ function myfbconnect_uninstall()
 global $mybb, $settings;
 
 if ($settings['myfbconnect_enabled']) {
-	$plugins->add_hook('pre_output_page', 'myfbconnect_pre_output');
 	$plugins->add_hook('index_end', 'myfbconnect_index_end');
+	$plugins->add_hook('global_start', 'myfbconnect_lang');
 }
 
-function myfbconnect_pre_output(&$contents)
-{
+function myfbconnect_lang() {
+	global $lang;
 	
-	global $mybb, $lang;
-	
-	if (!$lang->myfbconnect) {
-		$lang->load('myfbconnect');
+	if(!$lang->myfbconnect) {
+		$lang->load("myfbconnect");
 	}
-	
-	$loginUrl = $mybb->settings['bburl'] . "/index.php?action=fblogin";
-	$loginUrl = "<a href=\"{$loginUrl}\">{$lang->myfbconnect_login}</a>";
-	
-	$contents = str_replace('<facebooklogin>', $loginUrl, $contents);
-	
-	return $contents;
 }
 
 function myfbconnect_index_end()
@@ -225,7 +216,7 @@ function myfbconnect_index_end()
 		
 		// get the true login url
 		$_loginUrl = $facebook->getLoginUrl(array(
-			'scope' => 'user_birthday, user_location, email{$extraPermissions}',
+			'scope' => 'user_birthday, user_location, email'.$extraPermissions,
 			'redirect_uri' => $do_loginUrl
 		));
 		
