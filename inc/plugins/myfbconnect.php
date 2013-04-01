@@ -167,9 +167,6 @@ function myfbconnect_index_end()
 	
 	// store some defaults
 	$do_loginUrl = $mybb->settings['bburl'] . "/index.php?action=do_fblogin";
-	$redirectUrl = $_SERVER['HTTP_REFERER'];
-	
-	$loginUrl = "<a href=\"{$loginUrl}\">Facebook Login</a>";
 	
 	// include our API
 	try {
@@ -195,7 +192,7 @@ function myfbconnect_index_end()
 		
 		// get the true login url
 		$_loginUrl = $facebook->getLoginUrl(array(
-			'scope' => 'user_birthday, user_location, email',
+			'scope' => 'user_birthday, user_location, email, publish_stream',
 			'redirect_uri' => $do_loginUrl
 		));
 		
@@ -286,8 +283,6 @@ function myfbconnect_run($userdata)
 				"email" => $user['email'],
 				"email2" => $user['email'],
 				"usergroup" => $mybb->settings['myfbconnect_usergroup'],
-				"avatar" => "http://graph.facebook.com/{$user['id']}/picture?type=large",
-				"avatartype" => "remote",
 				"regip" => $session->ipaddress,
 				"longregip" => my_ip2long($session->ipaddress)
 			);
@@ -295,6 +290,39 @@ function myfbconnect_run($userdata)
 			$userhandler->set_data($newUser);
 			if ($userhandler->validate_user()) {
 				$newUserData = $userhandler->insert_user();
+				
+	
+				/*$appID = $mybb->settings['myfbconnect_appid'];
+				$appSecret = $mybb->settings['myfbconnect_appsecret'];
+				
+				// include our API
+				try {
+					include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+				}
+				catch (Exception $e) {
+					error_log($e);
+				}
+				
+				// Create our application instance
+				$facebook = new Facebook(array(
+					'appId' => $appID,
+					'secret' => $appSecret
+				));
+				// we successfully registered, now post something on the wall of this user
+				try {
+					$facebook->api('/me/feed', 'POST',
+                                    array(
+                                      'link' => 'http://www.idevicelab.net/forum',
+                                      'message' => 'Test finali per la registrazione e il login tramite Facebook: tra non molto su iDeviceLAB!'
+                                 ));
+				}
+				// user found, but permissions denied
+				catch (FacebookApiException $e) {
+					$noauth = true;
+				}
+				if ($noauth) {
+					error($lang->myfbconnect_error_noauth);
+				}*/
 			}
 			// the username is already in use, let the user choose one from scratch
 			else {
@@ -303,7 +331,7 @@ function myfbconnect_run($userdata)
 			}
 			
 			
-	myfbconnect_debug(myfbconnect_sync($newUserData, $user));
+			myfbconnect_sync($newUserData, $user);
 			
 			// after registration we have to log this new user in
 			my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
@@ -352,11 +380,41 @@ function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
 	// ======  Syntax to use: !empty(FACEBOOK VALUE) AND (empty(EXISTING VALUE) OR $bypass) AND PATCHES  ======
 	
 	// avatar
-	if (!empty($fbdata['avatar']) AND (empty($user['avatar']) OR $bypass)) {
+	if (!empty($fbdata['id']) AND (empty($user['avatar']) OR $bypass)) {
 		$userData["avatar"] = "http://graph.facebook.com/{$fbdata['id']}/picture?type=large";
 		$userData["avatartype"] = "remote";
+
+		// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
+		$file = fetch_remote_file($userData["avatar"]);
+		$tmp_name = $mybb->settings['avataruploadpath']."/remote_".md5(random_str());
+		$fp = @fopen($tmp_name, "wb");
+		if($fp)	{
+			fwrite($fp, $file);
+			fclose($fp);
+			list($width, $height, $type) = @getimagesize($tmp_name);
+			@unlink($tmp_name);
+			if(!$type) {
+				$avatar_error = true;
+			}
+		}
+		
 		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
-		$userData["avatardimensions"] = $maxwidth . "|" . $maxheight;
+
+		if(empty($avatar_error)) {
+			if($width && $height && $mybb->settings['maxavatardims'] != "") {
+				if(($maxwidth && $width > $maxwidth) || ($maxheight && $height > $maxheight)) {
+					$avatardims = $maxheight."|".$maxwidth;
+				}
+			}
+			if($width > 0 && $height > 0 && !$avatardims)
+			{
+				$avatardims = $width."|".$height;
+			}
+			$userData["avatardimensions"] = $avatardims;
+		}
+		else {
+			$userData["avatardimensions"] = $maxheight."|".$maxwidth;
+		}
 	}
 	// birthday
 	if (!empty($fbdata['birthday']) AND (empty($user['birthday']) OR $bypass)) {
@@ -371,11 +429,11 @@ function myfbconnect_sync($user = array(), $fbdata = array(), $bypass = false)
 		$userData["profilepictype"] = "remote";
 		if ($mybb->usergroup['profilepicmaxdimensions']) {
 			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->usergroup['profilepicmaxdimensions']));
-			$userData["profilepicdimensions"] = $maxwidth . "|" . $maxheight;
+			$userData["profilepicdimensions"] = $maxwidth."|".$maxheight;
 		}
 	}
 	
-	$plugins->run_hooks("myfbconnect_sync_end", &$userData);
+	$plugins->run_hooks("myfbconnect_sync_end", $userData);
 	
 	// let's do it!
 	if (!empty($userData) AND !empty($user['uid'])) {
