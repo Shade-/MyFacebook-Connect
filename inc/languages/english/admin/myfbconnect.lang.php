@@ -18,5 +18,3 @@ $l['myfbconnect_settings_passwordpm'] = "Send PM upon registration";
 $l['myfbconnect_settings_passwordpm_desc'] = "If this option is enabled, the user will be notified with a PM telling his randomly generated password upon his registration.";
 $l['myfbconnect_settings_requestpublishingperms'] = "Request publishing permissions";
 $l['myfbconnect_settings_requestpublishingperms_desc'] = "If this option is enabled, the user will be asked for extra publishing permissions for your application.";
-$l['myfbconnect_settings_dialog'] = "Load in dialog";
-$l['myfbconnect_settings_dialog_desc'] = "If this option is enabled, the Facebook permissions page will be loaded into a dialog instead of a full redirection page.";

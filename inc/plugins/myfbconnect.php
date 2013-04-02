@@ -96,16 +96,22 @@ function myfbconnect_install()
 			'title' => $lang->myfbconnect_settings_requestpublishingperms,
 			'description' => $lang->myfbconnect_settings_requestpublishingperms_desc,
 			'value' => '1',
-		),
-		'dialog' => array(
-			'title' => $lang->myfbconnect_settings_dialog,
-			'description' => $lang->myfbconnect_settings_dialog_desc,
-			'value' => '1',
 		)
 	));
 	
 	// insert our Facebook ID column into the database
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD `myfb_uid` bigint(50) NOT NULL");
+	
+	// Euantor's templating system	   
+	$dir = new DirectoryIterator(dirname(__FILE__) . '/MyFacebookConnect/templates');
+	$templates = array();
+	foreach ($dir as $file) {
+		if (!$file->isDot() AND !$file->isDir() AND pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
+			$templates[$file->getBasename('.html')] = file_get_contents($file->getPathName());
+		}
+	}
+	
+	$PL->templates('myfbconnect', 'MyFacebook Connect', $templates);
 	
 	// create cache
 	$info = myfbconnect_info();
@@ -150,9 +156,11 @@ function myfbconnect_uninstall()
 	unset($shadePlugins[$info['name']]);
 	$cache->update('shade_plugins', $shadePlugins);
 	
+	$PL->templates_delete('myfbconnect');
+	
 	require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
 	
-	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('{$lang->welcome_register}</a> &mdash; <a href="{$mybb->settings[\'bburl\']}/index.php?action=fblogin">{$lang->myfbconnect_login}</a>').'#i', '');
+	find_replace_templatesets('header_welcomeblock_guest', '#'.preg_quote('&mdash; <a href="{$mybb->settings[\'bburl\']}/index.php?action=fblogin">{$lang->myfbconnect_login}</a>').'#i', '');
 	
 	// rebuild settings
 	rebuild_settings();
@@ -161,8 +169,11 @@ function myfbconnect_uninstall()
 global $mybb, $settings;
 
 if ($settings['myfbconnect_enabled']) {
-	$plugins->add_hook('index_end', 'myfbconnect_index_end');
+	//$plugins->add_hook('index_end', 'myfbconnect_index_end');
 	$plugins->add_hook('global_start', 'myfbconnect_lang');
+	/*if(!$settings['myfbconnect_fastregistration']) {
+		$plugins->add_hook('member_start', 'myfbconnect_member_register');
+	}*/
 }
 
 function myfbconnect_lang() {
@@ -173,89 +184,8 @@ function myfbconnect_lang() {
 	}
 }
 
-function myfbconnect_index_end()
-{
-	
-	global $mybb, $lang;
-	
-	if (!$lang->myfbconnect) {
-		$lang->load('myfbconnect');
-	}
-	
-	$appID = $mybb->settings['myfbconnect_appid'];
-	$appSecret = $mybb->settings['myfbconnect_appsecret'];
-	
-	// store some defaults
-	$do_loginUrl = $mybb->settings['bburl'] . "/index.php?action=do_fblogin";
-	
-	// include our API
-	try {
-		include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
-	}
-	catch (Exception $e) {
-		error_log($e);
-	}
-	
-	// Create our application instance
-	$facebook = new Facebook(array(
-		'appId' => $appID,
-		'secret' => $appSecret
-	));
-	
-	// start all the magic
-	if ($mybb->input['action'] == "fblogin") {
-		
-		// empty configuration
-		if (empty($appID) OR empty($appSecret)) {
-			error($lang->myfbconnect_error_noconfigfound);
-		}
-		
-		if ($mybb->settings['myfbconnect_requestpublishingperms']) {
-			$extraPermissions = ", publish_stream";
-		}
-		
-		// get the true login url
-		$_loginUrl = $facebook->getLoginUrl(array(
-			'scope' => 'user_birthday, user_location, email'.$extraPermissions,
-			'redirect_uri' => $do_loginUrl
-		));
-		
-		// redirect to ask for permissions or to login if the user already granted them
-		header("Location: " . $_loginUrl);
-	}
-	
-	// don't stop the magic
-	if ($mybb->input['action'] == "do_fblogin") {
-		// get the user
-		$user = $facebook->getUser();
-		// guest detected!
-		if (!$mybb->user['uid']) {
-			if ($user) {
-				// user found and logged in
-				try {
-					// get the user public data
-					$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website");
-					// let our handler do all the hard work
-					myfbconnect_run($userdata);
-				}
-				// user found, but permissions denied
-				catch (FacebookApiException $e) {
-					$user = NULL;
-				}
-			}
-			if (!$user) {
-				error($lang->myfbconnect_error_noauth);
-			}
-		}
-		// user detected, just tell him he his already logged in
-		else {
-			error($lang->myfbconnect_error_alreadyloggedin);
-		}
-	}
-}
-
 /**
- * Logins or registers a new user with Facebook, provided a valid ID.
+ * Main function which logins or registers any kind of Facebook user, provided a valid ID.
  * 
  * @param array The user data containing all the information which are parsed and inserted into the database.
  * @return boolean True if successful, false if unsuccessful.
@@ -269,7 +199,7 @@ function myfbconnect_run($userdata)
 	$user = $userdata;
 	
 	// See if this user is already present in our database
-	$query = $db->simple_select("users", "*", "myfb_uid='{$user['id']}'");
+	$query = $db->simple_select("users", "*", "myfb_uid = {$user['id']}");
 	$facebookID = $db->fetch_array($query);
 	
 	// this user hasn't a linked-to-facebook account yet
@@ -291,75 +221,29 @@ function myfbconnect_run($userdata)
 			
 			my_setcookie("mybbuser", $registered['uid'] . "_" . $registered['loginkey'], null, true);
 			my_setcookie("sid", $session->sid, -1, true);
-			redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $registered['name']));
+			redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $registered['username']));
 		}
 		// this user isn't registered with us, so we have to register it
 		else {
-			require_once MYBB_ROOT . "inc/datahandlers/user.php";
-			$userhandler = new UserDataHandler("insert");
-			
-			$password = "123456";
-			
-			$newUser = array(
-				"username" => $user['name'],
-				"password" => $password,
-				"password2" => $password,
-				"email" => $user['email'],
-				"email2" => $user['email'],
-				"usergroup" => $mybb->settings['myfbconnect_usergroup'],
-				"regip" => $session->ipaddress,
-				"longregip" => my_ip2long($session->ipaddress)
-			);
-			
-			$userhandler->set_data($newUser);
-			if ($userhandler->validate_user()) {
-				$newUserData = $userhandler->insert_user();
-				
-	
-				/*$appID = $mybb->settings['myfbconnect_appid'];
-				$appSecret = $mybb->settings['myfbconnect_appsecret'];
-				
-				// include our API
-				try {
-					include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
-				}
-				catch (Exception $e) {
-					error_log($e);
-				}
-				
-				// Create our application instance
-				$facebook = new Facebook(array(
-					'appId' => $appID,
-					'secret' => $appSecret
-				));
-				// we successfully registered, now post something on the wall of this user
-				try {
-					$facebook->api('/me/feed', 'POST',
-                                    array(
-                                      'link' => 'http://www.idevicelab.net/forum',
-                                      'message' => 'Test finali per la registrazione e il login tramite Facebook: tra non molto su iDeviceLAB!'
-                                 ));
-				}
-				// user found, but permissions denied
-				catch (FacebookApiException $e) {
-					$noauth = true;
-				}
-				if ($noauth) {
-					error($lang->myfbconnect_error_noauth);
-				}*/
+			// if we want to let him choose some infos, then pass the ball to our custom page			
+			if(!$mybb->settings['myfbconnect_fastregistration']) {
+				header("Location: myfbconnect.php?action=fbregister");
+				return;
 			}
-			// the username is already in use, let the user choose one from scratch
+			
+			$newUserData = myfbconnect_register($user);
+			if($newUserData) {
+				myfbconnect_sync($newUserData, $user);			
+				// after registration we have to log this new user in
+				my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
+				if($_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], "action=fblogin") === false) {
+					$redirect_url = htmlentities($_SERVER['HTTP_REFERER']);
+				}
+				redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
+			}
 			else {
-				$error = $userhandler->get_errors();
-				error($lang->sprintf($lang->myfbconnect_error_usernametaken, $error['username_exists']['data']['0']));
+				error($lang->myfbconnect_error_unknown);
 			}
-			
-			
-			myfbconnect_sync($newUserData, $user);
-			
-			// after registration we have to log this new user in
-			my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
-			redirect("index.php", $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
 		}
 	}
 	// this user has already a linked-to-facebook account, just log him in and update session
@@ -373,9 +257,55 @@ function myfbconnect_run($userdata)
 		// eventually sync data
 		myfbconnect_sync($facebookID, $user);
 		
+		// finally log the user in
 		my_setcookie("mybbuser", $facebookID['uid'] . "_" . $facebookID['loginkey'], null, true);
 		my_setcookie("sid", $session->sid, -1, true);
-		redirect("index.php", $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $facebookID['username']));
+		// redirect the user to where he came from
+		if($_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], "action=fblogin") === false) {
+			$redirect_url = htmlentities($_SERVER['HTTP_REFERER']);
+		}
+		redirect($redirect_url, $lang->myfbconnect_redirect_loggedin, $lang->sprintf($lang->myfbconnect_redirect_title, $facebookID['username']));
+	}
+	
+}
+
+/**
+ * Registers an user, provided an array with valid data.
+ * 
+ * @param array The data of the user to register. name and email keys must be present.
+ * @return boolean True if successful, false if unsuccessful.
+ **/
+
+function myfbconnect_register($user = array())
+{
+	
+	global $mybb, $session, $plugins;
+	
+	require_once MYBB_ROOT . "inc/datahandlers/user.php";
+	$userhandler = new UserDataHandler("insert");
+	
+	$password = random_str(8);
+	
+	$newUser = array(
+		"username" => $user['name'],
+		"password" => $password,
+		"password2" => $password,
+		"email" => $user['email'],
+		"email2" => $user['email'],
+		"usergroup" => $mybb->settings['myfbconnect_usergroup'],
+		"regip" => $session->ipaddress,
+		"longregip" => my_ip2long($session->ipaddress)
+	);
+	
+	$userhandler->set_data($newUser);
+	if ($userhandler->validate_user()) {
+		$newUserData = $userhandler->insert_user();		
+		return $newUserData;
+	}
+	// the username is already in use, let the user choose one from scratch
+	else {
+		$error = $userhandler->get_errors();
+		error($lang->sprintf($lang->myfbconnect_error_usernametaken, $error['username_exists']['data']['0']));
 	}
 	
 }

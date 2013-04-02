@@ -18,5 +18,3 @@ $l['myfbconnect_settings_passwordpm'] = "Invia MP alla registrazione";
 $l['myfbconnect_settings_passwordpm_desc'] = "Se quest'opzione è abilitata, quando un utente si registra con Facebook viene inviato un MP contenente la password generata casualmente durante la registrazione.";
 $l['myfbconnect_settings_requestpublishingperms'] = "Richiedi permessi di pubblicazione";
 $l['myfbconnect_settings_requestpublishingperms_desc'] = "Se quest'opzione è abilitata, quando un utente autorizza la tua applicazione verranno richiesti anche permessi per postare sulla propria timeline.";
-$l['myfbconnect_settings_dialog'] = "Finestra di caricamento permessi";
-$l['myfbconnect_settings_dialog_desc'] = "Se quest'opzione è abilitata, quando un utente autorizza la tua applicazione verrà caricato un popup invece che l'intera pagina.";
