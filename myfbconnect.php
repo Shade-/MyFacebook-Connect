@@ -50,8 +50,8 @@ if ($mybb->input['action'] == "fblogin") {
 		error($lang->myfbconnect_error_alreadyloggedin);
 	}
 	
-	$do_loginUrl = "/myfbconnect.php?action=do_fblogin";
-	myfbconnect_login($do_loginUrl);
+	$loginUrl = "/myfbconnect.php?action=do_fblogin";
+	myfbconnect_login($loginUrl);
 }
 
 // don't stop the magic

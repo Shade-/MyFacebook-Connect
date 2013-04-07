@@ -302,15 +302,17 @@ function myfbconnect_usercp()
 				} else {
 					$settings[$setting] = 0;
 				}
+				// building the extra data passed to the redirect url of the login function
+				$loginUrlExtra .= "&{$setting}=".$settings[$setting];
 			}
 			
 			if(!$facebook->getUser()) {
-				$loginUrl = "/usercp.php?action=myfbconnect&fbdetails={$mybb->input['fbdetails']}&fbbday={$mybb->input['fbbday']}&fblocation={$mybb->input['fblocation']}";
+				$loginUrl = "/usercp.php?action=myfbconnect".$loginUrlExtra;
 				myfbconnect_login($loginUrl);
 			}
 			
 			if ($db->update_query('users', $settings, 'uid = ' . (int) $mybb->user['uid'])) {
-				// inline update that array of data dude!
+				// update on-the-fly that array of data dude!
 				$newUser = array_merge($mybb->user, $settings);
 				// oh yeah, let's sync!
 				myfbconnect_sync($newUser);
