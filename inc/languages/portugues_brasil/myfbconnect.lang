@@ -1,0 +1,30 @@
+<?php
+
+$l['myfbconnect'] = "MyFacebook Connect";
+$l['myfbconnect_login'] = "Entrar com o FaceBook  ";
+
+// redirects
+$l['myfbconnect_redirect_loggedin'] = "Você logou com sucesso pelo Facebook.";
+$l['myfbconnect_redirect_registered'] = "Você registrou-se e logou com sucesso pelo Facebook.";
+$l['myfbconnect_redirect_title'] = "Olá, {1}!";
+
+
+// errors
+$l['myfbconnect_error_noconfigfound'] = "Você ainda não configurou o Myfacebook Connect: ou o seu ID de aplicativo ou seu ID secreto de aplicativo estão faltando.Se você for um administrador verifique a documentação fornecida.";
+$l['myfbconnect_error_noauth'] = "Você não nos deixou fazer o login com sua conta do Facebook. Por favor, autorizar nossa aplicação do Facebook, se você gostaria de entrar em nosso Fórum.";
+$l['myfbconnect_error_usernametaken'] = "O nome de usuário {1} já está em uso por outro usuário. Na versão atual do plugin não podemos deixar de escolher um novo nome de usuário a partir do zero, lamentamos. Tente registar-se ou faça seu login normalmente.";
+$l['myfbconnect_error_alreadyloggedin'] = "Você já está registrado no fórum.";
+$l['myfbconnect_error_unknown'] = "Humm..erro desconhecido.";
+
+// usercp
+$l['myfbconnect_settings_title'] = "Integração Facebook";
+$l['myfbconnect_settings_save'] = "Salvar";
+$l['myfbconnect_settings_fbdetails'] = "Avatar, cover, gênero, nome e último nome, bio";
+$l['myfbconnect_settings_fbbday'] = "Aniversário";
+$l['myfbconnect_settings_fblocation'] = "Localização";
+$l['myfbconnect_link'] = "Vincular a sua conta com o seu Facebook";
+
+// success messages
+$l['myfbconnect_success_linked'] = "Sua conta no forum foi corretamente ligado ao seu Facebook.";
+$l['myfbconnect_success_settingsupdated'] = "Suas configurações de integração do Facebook relacionados foram atualizados corretamente.";
+$l['myfbconnect_success_settingsupdated_title'] = "Configurações atualizadas";
