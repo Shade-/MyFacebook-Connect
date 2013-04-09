@@ -1,0 +1,20 @@
+<?php
+// installation
+$l['myfbconnect'] = "Conexão MyFacebook";
+$l['myfbconnect_pluginlibrary_missing'] = "<a href=\"http://mods.mybb.com/view/pluginlibrary\">PluginLibrary</a> está falatno.Por favor instale para o correto funcionamento do plugin";
+$l['myfbconnect_settings'] = "Configurações de login e registros do Facebook";
+$l['myfbconnect_settings_desc'] = "Aqui você pode gerenciar aspectos do seu MyFacebook plugin.Habilitando ou desabilitando caracteristicas e inserindo so dados necessários.";
+$l['myfbconnect_settings_enable'] = "Chave Principal | Liga & Desliga";
+$l['myfbconnect_settings_enable_desc'] = "Você quer que seus usuários façam login e registrem-se com o Facebook? Se um usuário já estiver registrado, a conta será ligada à sua conta do Facebook.";
+$l['myfbconnect_settings_appid'] = "ID de aplicativo";
+$l['myfbconnect_settings_appid_desc'] = "Digite seu ID de aplicativo retirado do site Facebook Developers. Isso será usado em conjunto com o token secreto para pedir autorização para seus usuários através de seu aplicativo.";
+$l['myfbconnect_settings_appsecret'] = "Segredo de Aplicativo";
+$l['myfbconnect_settings_appsecret_desc'] = "Digite seu ID de Aplicativo retirado do site Facebook Developers. Isso será usado em conjunto com o token secreto para pedir autorização para seus usuários através de seu aplicativo.";
+$l['myfbconnect_settings_fastregistration'] = "Registro em 1-clique";
+$l['myfbconnect_settings_fastregistration_desc'] = "Se esta opção estiver habilitada, quando um usuário registrar-se com o Facebook, ele será solicitado por permissões para o aplicativo se é a primeira vez que ele loga, mais ele será cadastrado e logado imediatamente sem pedir alterações de nome de usuário e que dados sincronizar.";
+$l['myfbconnect_settings_usergroup'] = "Grupos de usuários após o registro";
+$l['myfbconnect_settings_usergroup_desc'] = "Digite o ID do grupo de usuários que você quer que os novos usuários de ser quando se registam no Facebook. Por padrão, esse valor é definido para 2, o que equivale a grupos de usuários registrados.";
+$l['myfbconnect_settings_passwordpm'] = "Enviar MP no momento do registo";
+$l['myfbconnect_settings_passwordpm_desc'] = "Se esta opção for ativada, o usuário será notificado com uma PM contando sua senha gerada aleatoriamente sobre a sua inscrição.";
+$l['myfbconnect_settings_requestpublishingperms'] = "Requisitando permissões de publicação";
+$l['myfbconnect_settings_requestpublishingperms_desc'] = "Se esta opção for ativada, o usuário será solicitado por permissões de publicação extras para a sua aplicação.";
