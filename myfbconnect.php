@@ -9,7 +9,7 @@
  * @page Main
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version beta 4
+ * @version 1.0
  */
 
 define("IN_MYBB", 1);
@@ -82,8 +82,13 @@ if ($mybb->input['action'] == "do_fblogin") {
 	}
 }
 
-// don't stop the magic
+// don't stop the magic, again!
 if ($mybb->input['action'] == "fbregister") {
+	
+	// user detected, just tell him he his already logged in
+	if($mybb->user['uid']) {
+		error($lang->myfbconnect_error_alreadyloggedin);
+	}
 	
 	// get the user
 	$user = $facebook->getUser();
@@ -105,13 +110,78 @@ if ($mybb->input['action'] == "fbregister") {
 	if($mybb->request_method == "post") {
 		$newuser = array();	
 		$newuser['name'] = $mybb->input['username'];
-		$newuser['email'] = $userdata['email'];
+		$newuser['email'] = $mybb->input['email'];
+		
+		$settingsToAdd = array();
+		$settingsToCheck = array(
+			"fbavatar",
+			"fbsex",
+			"fbdetails",
+			"fbbio",
+			"fbbday",
+			"fblocation"
+		);
+		
+		foreach ($settingsToCheck as $setting) {
+			// variable variables. Yay!
+			if ($mybb->input[$setting] == 1) {
+				$settingsToAdd[$setting] = 1;
+			} else {
+				$settingsToAdd[$setting] = 0;
+			}
+		}
+		
+		// register it
+		$newUserData = myfbconnect_register($newuser);
+		// insert options and extra data
+		if($db->update_query('users', $settingsToAdd, 'uid = ' . (int) $newUserData['uid']) AND !empty($newUserData)) {
+			// update on-the-fly that array of data dude!
+			$newUser = array_merge($newUserData, $settings);
+			// oh yeah, let's sync!
+			myfbconnect_sync($newUser);
+			
+			// login the user normally, and we have finished.	
+			$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");
+			$newsession = array(
+				"uid" => $newUserData['uid']
+			);
+			$db->update_query("sessions", $newsession, "sid='" . $session->sid . "'");
+			
+			// finally log the user in
+			my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
+			my_setcookie("sid", $session->sid, -1, true);
+			// redirect the user to where he came from
+			if ($mybb->input['redUrl'] AND strpos($mybb->input['redUrl'], "action=fblogin") === false) {
+				$redirect_url = htmlentities($mybb->input['redUrl']);
+			} else {
+				$redirect_url = "index.php";
+			}
+			redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $newUserData['username']));
+		}
 	}
 	
-	// user detected, just tell him he his already logged in
-	if($mybb->user['uid']) {
-		error($lang->myfbconnect_error_alreadyloggedin);
+	$options = "";
+	$settingsToBuild = array(
+		"fbavatar",
+		"fbsex",
+		"fbdetails",
+		"fbbio",
+		"fbbday",
+		"fblocation"
+	);
+	
+	foreach ($settingsToBuild as $setting) {
+		// variable variables. Yay!
+		$tempKey = 'myfbconnect_settings_' . $setting;
+		$checked = " checked=\"checked\"";
+		$label = $lang->$tempKey;
+		$altbg = alt_trow();
+		eval("\$options .= \"".$templates->get('myfbconnect_register_settings_setting')."\";");
 	}
+	
+	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$userdata['name']}\" />";
+	$email = "<input type=\"text\" class=\"textbox\" name=\"email\" value=\"{$userdata['email']}\" />";
+	$redirectUrl = "<input type=\"hidden\" name=\"redUrl\" value=\"{$_SERVER['HTTP_REFERER']}\" />";
 			
 	// output our page
 	eval("\$fbregister = \"".$templates->get("myfbconnect_register")."\";");

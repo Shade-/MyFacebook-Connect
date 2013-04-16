@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version beta 4
+ * @version 1.0
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebookConnect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => 'beta 4',
+		'version' => '1.0',
 		'compatibility' => '16*',
 		'guid' => 'none... yet'
 	);
@@ -101,7 +101,10 @@ function myfbconnect_install()
 	
 	// insert our Facebook columns into the database
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD (
+		`fbavatar` int(1) NOT NULL DEFAULT 1,
+		`fbsex` int(1) NOT NULL DEFAULT 1,
 		`fbdetails` int(1) NOT NULL DEFAULT 1,
+		`fbbio` int(1) NOT NULL DEFAULT 1,
 		`fbbday` int(1) NOT NULL DEFAULT 1,
 		`fblocation` int(1) NOT NULL DEFAULT 1,
 		`myfb_uid` bigint(50) NOT NULL DEFAULT 0
@@ -153,7 +156,7 @@ function myfbconnect_uninstall()
 	$PL->settings_delete('myfbconnect');
 	
 	// delete our Facebook columns
-	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbdetails`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
+	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbavatar`, DROP `fbsex`, DROP `fbdetails`, DROP `fbbio`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
 	
 	$info = myfbconnect_info();
 	// delete the plugin from cache
@@ -282,6 +285,7 @@ function myfbconnect_usercp()
 		add_breadcrumb($lang->nav_usercp, 'usercp.php');
 		add_breadcrumb($lang->myfbconnect_page_title, 'usercp.php?action=myfbconnect');
 		
+		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
 		if ($mybb->request_method == 'post' OR ($facebook->getAccessToken() && $mybb->input['code'])) {
 			
 			if($mybb->request_method == 'post') {
@@ -290,7 +294,10 @@ function myfbconnect_usercp()
 			
 			$settings = array();
 			$settingsToCheck = array(
+				"fbavatar",
+				"fbsex",
 				"fbdetails",
+				"fbbio",
 				"fbbday",
 				"fblocation"
 			);
@@ -327,9 +334,10 @@ function myfbconnect_usercp()
 		
 		$query = $db->simple_select("users", "myfb_uid", "uid = " . $mybb->user['uid']);
 		$alreadyThere = $db->fetch_field($query, "myfb_uid");
+		$options = "";
 		
 		if ($alreadyThere) {
-			$query = $db->simple_select("users", "fbdetails, fbbday, fblocation", "uid = " . $mybb->user['uid']);
+			$query = $db->simple_select("users", "fbavatar, fbsex, fbdetails, fbbio, fbbday, fblocation", "uid = " . $mybb->user['uid']);
 			$userSettings = $db->fetch_array($query);
 			$settings = "";
 			foreach ($userSettings as $setting => $value) {
@@ -341,9 +349,9 @@ function myfbconnect_usercp()
 					$checked = "";
 				}
 				$label = $lang->$tempKey;
-				eval("\$settings .= \"".$templates->get('myfbconnect_usercp_settings_setting')."\";");
+				$altbg = alt_trow();
+				eval("\$options .= \"".$templates->get('myfbconnect_usercp_settings_setting')."\";");
 			}
-			eval("\$options = \"".$templates->get('myfbconnect_usercp_settings_showsettings')."\";");
 		} else {
 			eval("\$options = \"".$templates->get('myfbconnect_usercp_settings_linkprofile')."\";");
 		}
@@ -474,7 +482,7 @@ function myfbconnect_run($userdata, $justlink = false)
 function myfbconnect_register($user = array())
 {
 	
-	global $mybb, $session, $plugins;
+	global $mybb, $session, $plugins, $lang;
 	
 	require_once MYBB_ROOT . "inc/datahandlers/user.php";
 	$userhandler = new UserDataHandler("insert");
@@ -497,10 +505,9 @@ function myfbconnect_register($user = array())
 		$newUserData = $userhandler->insert_user();
 		return $newUserData;
 	}
-	// the username is already in use, let the user choose one from scratch
 	else {
 		$error = $userhandler->get_errors();
-		error($lang->sprintf($lang->myfbconnect_error_usernametaken, $error['username_exists']['data']['0']));
+		error($lang->sprintf($lang->myfbconnect_error_report, $error));
 	}
 	
 }
@@ -544,7 +551,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		
 		$fbuser = $facebook->getUser();
 		if(!$fbuser) {
-			myfbconnect_debug($mybb);
+			  error($lang->myfbconnect_error_unknown);
 		}
 		else {
 			$fbdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
@@ -563,10 +570,10 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	}
 	
 	// begin our checkes comparing mybb with facebook stuff, syntax:
-	// $usersettings AND !empty(FACEBOOK VALUE) OR $bypass
+	// ($usersettings AND !empty(FACEBOOK VALUE)) OR $bypass
 	
 	// avatar
-	if (($user['fbdetails'] AND !empty($fbdata['id'])) OR $bypass) {
+	if (($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) {
 		$userData["avatar"] = $db->escape_string("http://graph.facebook.com/{$fbdata['id']}/picture?type=large");
 		$userData["avatartype"] = "remote";
 		
@@ -607,7 +614,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		$userData["birthday"] = $birthday['1'] . "-" . $birthday['0'] . "-" . $birthday['2'];
 	}
 	// cover, if Profile Picture plugin is installed
-	if ((($user['fbdetails'] AND !empty($fbdata['cover']['source'])) OR $bypass) AND $db->field_exists("profilepic", "users")) {
+	if ((($user['fbavatar'] AND !empty($fbdata['cover']['source'])) OR $bypass) AND $db->field_exists("profilepic", "users")) {
 		$cover = $fbdata['cover']['source'];
 		$userData["profilepic"] = str_replace('/s720x720/', '/p851x315/', $cover);
 		$userData["profilepictype"] = "remote";
@@ -619,27 +626,25 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		}
 	}
 	
-	if(defined(IDEVICELAB)) {
-		// sex - iDeviceLAB only
-		if (($user['fbdetails'] AND !empty($fbdata['gender'])) OR (!empty($fbdata['gender']) AND empty($userfields['fid3'])) OR $bypass) {
-			if ($fbdata['gender'] == "male") {
-				$userfieldsData['fid3'] = "Uomo";
-			} elseif ($fbdata['gender'] == "female") {
-				$userfieldsData['fid3'] = "Donna";
-			}
+	// sex - iDeviceLAB only atm
+	if (($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) {
+		if ($fbdata['gender'] == "male") {
+			$userfieldsData['fid3'] = "Uomo";
+		} elseif ($fbdata['gender'] == "female") {
+			$userfieldsData['fid3'] = "Donna";
 		}
-		// name and last name - iDeviceLAB only
-		if (($user['fbdetails'] AND !empty($fbdata['name'])) OR (!empty($fbdata['name']) AND empty($userfields['fid10'])) OR $bypass) {
-			$userfieldsData['fid10'] = $fbdata['name'];
-		}
-		// bio - iDeviceLAB only
-		if (($user['fbdetails'] AND !empty($fbdata['bio'])) OR (!empty($fbdata['bio']) AND empty($userfields['fid11'])) OR $bypass) {
-			$userfieldsData['fid11'] = my_substr($fbdata['bio'], 0, 400, true);
-		}
-		// location - iDeviceLAB only
-		if (($user['fbdetails'] AND !empty($fbdata['location']['name'])) OR (!empty($fbdata['location']['name']) AND empty($userfields['fid1'])) OR $bypass) {
-			$userfieldsData['fid1'] = $fbdata['location']['name'];
-		}
+	}
+	// name and last name - iDeviceLAB only atm
+	if (($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) {
+		$userfieldsData['fid10'] = $fbdata['name'];
+	}
+	// bio - iDeviceLAB only atm
+	if (($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) {
+		$userfieldsData['fid11'] = my_substr($fbdata['bio'], 0, 400, true);
+	}
+	// location - iDeviceLAB only atm
+	if (($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) {
+		$userfieldsData['fid1'] = $fbdata['location']['name'];
 	}
 	
 	$plugins->run_hooks("myfbconnect_sync_end", $userData);
@@ -648,7 +653,8 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	if (!empty($userData) AND !empty($user['uid'])) {
 		$db->update_query("users", $userData, "uid = {$user['uid']}");
 	}
-	if (!empty($userfieldsData) AND !empty($user['uid'])) {
+	// make sure we are on iDeviceLAB
+	if (!empty($userfieldsData) AND !empty($user['uid']) AND defined("IDEVICELAB")) {
 		if (isset($userfieldsData['uid'])) {
 			$db->insert_query("userfields", $userfieldsData);
 		} else {
@@ -661,7 +667,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 }
 
 /**
- * Logins any Facebook user, prompting a permission page.
+ * Logins any Facebook user, prompting a permission page and redirecting to the URL they came from.
  * 
  * @param mixed The URL to redirect at the end of the process. Relative URL.
  * @return redirect Redirects with an header() call to the specified URL.
