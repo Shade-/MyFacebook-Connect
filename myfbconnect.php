@@ -20,6 +20,10 @@ require_once  "./global.php";
 
 $lang->load('myfbconnect');
 
+if(!$mybb->settings['myfbconnect_masterswitch']) {
+	header("Location: index.php");
+}
+
 /* API LOAD */
 try {
 	include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
