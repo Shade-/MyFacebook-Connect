@@ -28,7 +28,7 @@ function myfbconnect_info()
 		'authorsite' => 'http://www.idevicelab.net/forum',
 		'version' => '1.0',
 		'compatibility' => '16*',
-		'guid' => 'none... yet'
+		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
 }
 
@@ -87,15 +87,87 @@ function myfbconnect_install()
 			'value' => '2',
 			'optionscode' => 'text'
 		),
+		'requestpublishingperms' => array(
+			'title' => $lang->myfbconnect_settings_requestpublishingperms,
+			'description' => $lang->myfbconnect_settings_requestpublishingperms_desc,
+			'value' => '0'
+		),
 		'passwordpm' => array(
 			'title' => $lang->myfbconnect_settings_passwordpm,
 			'description' => $lang->myfbconnect_settings_passwordpm_desc,
 			'value' => '1'
 		),
-		'requestpublishingperms' => array(
-			'title' => $lang->myfbconnect_settings_requestpublishingperms,
-			'description' => $lang->myfbconnect_settings_requestpublishingperms_desc,
+		'passwordpm_subject' => array(
+			'title' => $lang->myfbconnect_settings_passwordpm_subject,
+			'description' => $lang->myfbconnect_settings_passwordpm_subject_desc,
+			'optionscode' => 'text',
+			'value' => $lang->myfbconnect_default_passwordpm_subject
+		),
+		'passwordpm_message' => array(
+			'title' => $lang->myfbconnect_settings_passwordpm_message,
+			'description' => $lang->myfbconnect_settings_passwordpm_message_desc,
+			'optionscode' => 'textarea',
+			'value' => $lang->myfbconnect_default_passwordpm_message
+		),
+		'passwordpm_fromid' => array(
+			'title' => $lang->myfbconnect_settings_passwordpm_fromid,
+			'description' => $lang->myfbconnect_settings_passwordpm_fromid_desc,
+			'optionscode' => 'text',
+			'value' => ''
+		),
+		// birthday
+		'fbbday' => array(
+			'title' => $lang->myfbconnect_settings_fbbday,
+			'description' => $lang->myfbconnect_settings_fbbday_desc,
 			'value' => '1'
+		),
+		// location
+		'fblocation' => array(
+			'title' => $lang->myfbconnect_settings_fblocation,
+			'description' => $lang->myfbconnect_settings_fblocation_desc,
+			'value' => '1'
+		),
+		'fblocationfield' => array(
+			'title' => $lang->myfbconnect_settings_fblocationfield,
+			'description' => $lang->myfbconnect_settings_fblocationfield_desc,
+			'optionscode' => 'text',
+			'value' => '1'
+		),
+		// bio
+		'fbbio' => array(
+			'title' => $lang->myfbconnect_settings_fbbio,
+			'description' => $lang->myfbconnect_settings_fbbio_desc,
+			'value' => '1'
+		),
+		'fbbiofield' => array(
+			'title' => $lang->myfbconnect_settings_fbbiofield,
+			'description' => $lang->myfbconnect_settings_fbbiofield_desc,
+			'optionscode' => 'text',
+			'value' => '2'
+		),
+		// name and last name
+		'fbdetails' => array(
+			'title' => $lang->myfbconnect_settings_fbdetails,
+			'description' => $lang->myfbconnect_settings_fbdetails_desc,
+			'value' => '0'
+		),
+		'fbdetailsfield' => array(
+			'title' => $lang->myfbconnect_settings_fbdetailsfield,
+			'description' => $lang->myfbconnect_settings_fbdetailsfield_desc,
+			'optionscode' => 'text',
+			'value' => ''
+		),
+		// sex - does nothing atm!
+		'fbsex' => array(
+			'title' => $lang->myfbconnect_settings_fbsex,
+			'description' => $lang->myfbconnect_settings_fbsex_desc,
+			'value' => '0'
+		),
+		'fbsexfield' => array(
+			'title' => $lang->myfbconnect_settings_fbsexfield,
+			'description' => $lang->myfbconnect_settings_fbsexfield_desc,
+			'optionscode' => 'text',
+			'value' => '3'
 		)
 	));
 	
@@ -180,6 +252,7 @@ if ($settings['myfbconnect_enabled']) {
 	$plugins->add_hook('global_start', 'myfbconnect_global');
 	$plugins->add_hook('usercp_menu', 'myfbconnect_usercp_menu', 40);
 	$plugins->add_hook('usercp_start', 'myfbconnect_usercp');
+	$plugins->add_hook("admin_page_output_footer", "myfbconnect_settings_footer");
 }
 
 function myfbconnect_global()
@@ -217,7 +290,7 @@ function myfbconnect_usercp_menu()
 		$lang->load("myfbconnect");
 	}
 	
-	eval("\$usercpmenu .= \"".$templates->get('myfbconnect_usercp_menu')."\";");
+	eval("\$usercpmenu .= \"" . $templates->get('myfbconnect_usercp_menu') . "\";");
 }
 
 function myfbconnect_usercp()
@@ -229,31 +302,33 @@ function myfbconnect_usercp()
 		$lang->load('myfbconnect');
 	}
 	
-	/* API LOAD */
-	try {
-		include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
-	}
-	catch (Exception $e) {
-		error_log($e);
-	}
+	if($mybb->input['action'] == ("fblink" OR "do_fblink" OR "myfbconnect")) {
+		/* API LOAD */
+		try {
+			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+		}
+		catch (Exception $e) {
+			error_log($e);
+		}
 		
-	$appID = $mybb->settings['myfbconnect_appid'];
-	$appSecret = $mybb->settings['myfbconnect_appsecret'];
+		$appID = $mybb->settings['myfbconnect_appid'];
+		$appSecret = $mybb->settings['myfbconnect_appsecret'];
 		
-	// empty configuration
-	if (empty($appID) OR empty($appSecret)) {
-		error($lang->myfbconnect_error_noconfigfound);
+		// empty configuration
+		if (empty($appID) OR empty($appSecret)) {
+			error($lang->myfbconnect_error_noconfigfound);
+		}
+		
+		// Create our application instance
+		$facebook = new Facebook(array(
+			'appId' => $appID,
+			'secret' => $appSecret
+		));
+		/* END API LOAD */
 	}
-		
-	// Create our application instance
-	$facebook = new Facebook(array(
-		'appId' => $appID,
-		'secret' => $appSecret
-	));
-	/* END API LOAD */
 	
 	// linking accounts
-	if ($mybb->input['action'] == "fblink") {		
+	if ($mybb->input['action'] == "fblink") {
 		$loginUrl = "/usercp.php?action=do_fblink";
 		myfbconnect_login($loginUrl);
 	}
@@ -270,6 +345,8 @@ function myfbconnect_usercp()
 			if (function_exists(inline_success)) {
 				$inlinesuccess = inline_success($lang->myfbconnect_success_linked);
 				$mybb->input['action'] = "myfbconnect";
+				// make sure we don't update options when redirecting with inline success (with NULL values)
+				unset($mybb->input['code']);
 			} else {
 				redirect("usercp.php?action=myfbconnect", $lang->myfbconnect_success_linked);
 			}
@@ -288,7 +365,7 @@ function myfbconnect_usercp()
 		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
 		if ($mybb->request_method == 'post' OR ($facebook->getAccessToken() && $mybb->input['code'])) {
 			
-			if($mybb->request_method == 'post') {
+			if ($mybb->request_method == 'post') {
 				verify_post_check($mybb->input['my_post_key']);
 			}
 			
@@ -310,11 +387,11 @@ function myfbconnect_usercp()
 					$settings[$setting] = 0;
 				}
 				// building the extra data passed to the redirect url of the login function
-				$loginUrlExtra .= "&{$setting}=".$settings[$setting];
+				$loginUrlExtra .= "&{$setting}=" . $settings[$setting];
 			}
 			
-			if(!$facebook->getUser()) {
-				$loginUrl = "/usercp.php?action=myfbconnect".$loginUrlExtra;
+			if (!$facebook->getUser()) {
+				$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
 				myfbconnect_login($loginUrl);
 			}
 			
@@ -337,7 +414,30 @@ function myfbconnect_usercp()
 		$options = "";
 		
 		if ($alreadyThere) {
-			$query = $db->simple_select("users", "fbavatar, fbsex, fbdetails, fbbio, fbbday, fblocation", "uid = " . $mybb->user['uid']);
+			
+			$text = $lang->myfbconnect_settings_whattosync;
+			// checking if we want to sync that stuff
+			$settingsToCheck = array(
+				"fbbday",
+				"fbsex",
+				"fbdetails",
+				"fbbio",
+				"fblocation"
+			);
+			
+			foreach($settingsToCheck as $setting) {
+				$tempKey = 'myfbconnect_'.$setting;
+				if($mybb->settings[$tempKey]) {
+					$settingsToSelect[] = $setting;
+				}
+			}
+			
+			// join pieces into a string
+			if(!empty($settingsToSelect)) {
+				$settingsToSelect = ",".implode(",", $settingsToSelect);
+			}
+			
+			$query = $db->simple_select("users", "fbavatar".$settingsToSelect, "uid = " . $mybb->user['uid']);
 			$userSettings = $db->fetch_array($query);
 			$settings = "";
 			foreach ($userSettings as $setting => $value) {
@@ -350,13 +450,14 @@ function myfbconnect_usercp()
 				}
 				$label = $lang->$tempKey;
 				$altbg = alt_trow();
-				eval("\$options .= \"".$templates->get('myfbconnect_usercp_settings_setting')."\";");
+				eval("\$options .= \"" . $templates->get('myfbconnect_usercp_settings_setting') . "\";");
 			}
 		} else {
-			eval("\$options = \"".$templates->get('myfbconnect_usercp_settings_linkprofile')."\";");
+			$text = $lang->myfbconnect_settings_linkaccount;
+			eval("\$options = \"" . $templates->get('myfbconnect_usercp_settings_linkprofile') . "\";");
 		}
 		
-		eval("\$content = \"".$templates->get('myfbconnect_usercp_settings')."\";");
+		eval("\$content = \"" . $templates->get('myfbconnect_usercp_settings') . "\";");
 		output_page($content);
 	}
 }
@@ -496,6 +597,7 @@ function myfbconnect_register($user = array())
 		"email" => $user['email'],
 		"email2" => $user['email'],
 		"usergroup" => $mybb->settings['myfbconnect_usergroup'],
+		"displaygroup" => $mybb->settings['myfbconnect_usergroup'],
 		"regip" => $session->ipaddress,
 		"longregip" => my_ip2long($session->ipaddress)
 	);
@@ -503,13 +605,65 @@ function myfbconnect_register($user = array())
 	$userhandler->set_data($newUser);
 	if ($userhandler->validate_user()) {
 		$newUserData = $userhandler->insert_user();
+		
+		if ($mybb->settings['myfbconnect_passwordpm']) {
+			require_once MYBB_ROOT . "inc/datahandlers/pm.php";
+			$pmhandler = new PMDataHandler();
+			$pmhandler->admin_override = true;
+			
+			// just make sure the admins didn't make something wrong in configuration
+			if(!empty($mybb->settings['myfbconnect_passwordpm_fromid'])) {
+				$fromid = 0;
+			}
+			else {
+				$fromid = (int) $mybb->settings['myfbconnect_passwordpm_fromid'];
+			}
+			
+			$message = $mybb->settings['myfbconnect_passwordpm_message'];
+			$subject = $mybb->settings['myfbconnect_passwordpm_subject'];
+			
+			$thingsToReplace = array(
+				"{user}" => $newUserData['username'],
+				"{password}" => $password
+			);
+			
+			// replace what needs to be replaced
+			foreach ($thingsToReplace as $find => $replace) {
+				$message = str_replace($find, $replace, $message);
+			}
+			
+			$pm = array(
+				"subject" => $subject,
+				"message" => $message,
+				"fromid" => $fromid,
+				"toid" => array($newUserData['uid'])
+			);
+			
+			// some defaults :)
+			$pm['options'] = array(
+				"signature" => 1,
+				"disablesmilies" => 0,
+				"savecopy" => 0,
+				"readreceipt" => 0
+			);
+			
+			$pmhandler->set_data($pm);
+			
+			// Now let the pm handler do all the hard work
+			if ($pmhandler->validate_pm()) {
+				$pmhandler->insert_pm();
+			}
+			else {
+				error($lang->sprintf($lang->myfbconnect_error_report, $pmhandler->get_errors()));
+			}
+		}		
+		// return our newly registered user data
 		return $newUserData;
 	}
 	else {
-		$error = $userhandler->get_errors();
-		error($lang->sprintf($lang->myfbconnect_error_report, $error));
+		$errors = $userhandler->get_errors();
+		error($lang->sprintf($lang->myfbconnect_error_report, $errors));
 	}
-	
 }
 
 /**
@@ -528,6 +682,11 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	
 	$userData = array();
 	$userfieldsData = array();
+	
+	$detailsid = "fid".$mybb->settings['myfbconnect_fbdetailsfield'];
+	$locationid = "fid".$mybb->settings['myfbconnect_fblocationfield'];
+	$bioid = "fid".$mybb->settings['myfbconnect_fbbiofield'];
+	$sexid = "fid".$mybb->settings['myfbconnect_fbsexfield'];
 	
 	// ouch! empty facebook data, we need to help this poor guy!
 	if (empty($fbdata)) {
@@ -550,10 +709,9 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		));
 		
 		$fbuser = $facebook->getUser();
-		if(!$fbuser) {
-			  error($lang->myfbconnect_error_unknown);
-		}
-		else {
+		if (!$fbuser) {
+			error($lang->myfbconnect_error_unknown);
+		} else {
 			$fbdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
 		}
 	}
@@ -570,7 +728,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	}
 	
 	// begin our checkes comparing mybb with facebook stuff, syntax:
-	// ($usersettings AND !empty(FACEBOOK VALUE)) OR $bypass
+	// (USER SETTINGS AND !empty(FACEBOOK VALUE)) OR $bypass (eventually ADMIN SETTINGS)
 	
 	// avatar
 	if (($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) {
@@ -608,7 +766,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		}
 	}
 	// birthday
-	if (($user['fbbday'] AND !empty($fbdata['birthday'])) OR $bypass) {
+	if ((($user['fbbday'] AND !empty($fbdata['birthday'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbday']) {
 		$birthday = explode("/", $fbdata['birthday']);
 		$birthday['0'] = ltrim($birthday['0'], '0');
 		$userData["birthday"] = $birthday['1'] . "-" . $birthday['0'] . "-" . $birthday['2'];
@@ -626,25 +784,34 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 		}
 	}
 	
-	// sex - iDeviceLAB only atm
-	if (($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) {
-		if ($fbdata['gender'] == "male") {
-			$userfieldsData['fid3'] = "Uomo";
-		} elseif ($fbdata['gender'] == "female") {
-			$userfieldsData['fid3'] = "Donna";
+	// sex
+	if ((($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) AND $mybb->settings['myfbconnect_fbsex']) {
+		if($db->field_exists($sexid, "userfields")) {
+			if ($fbdata['gender'] == "male") {
+				// italian fillings... 5h17! workaround needed!
+				$userfieldsData[$sexid] = "Uomo";
+			} elseif ($fbdata['gender'] == "female") {
+				$userfieldsData[$sexid] = "Donna";
+			}
 		}
 	}
-	// name and last name - iDeviceLAB only atm
-	if (($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) {
-		$userfieldsData['fid10'] = $fbdata['name'];
+	// name and last name
+	if ((($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fbdetails']) {
+		if($db->field_exists($detailsid, "userfields")) {
+			$userfieldsData[$detailsid] = $fbdata['name'];
+		}
 	}
-	// bio - iDeviceLAB only atm
-	if (($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) {
-		$userfieldsData['fid11'] = my_substr($fbdata['bio'], 0, 400, true);
+	// bio
+	if ((($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbio']) {
+		if($db->field_exists($bioid, "userfields")) {
+			$userfieldsData[$bioid] = htmlspecialchars_decode(my_substr($fbdata['bio'], 0, 400, true));
+		}
 	}
-	// location - iDeviceLAB only atm
-	if (($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) {
-		$userfieldsData['fid1'] = $fbdata['location']['name'];
+	// location
+	if ((($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fblocation']) {
+		if($db->field_exists($locationid, "userfields")) {
+			$userfieldsData[$locationid] = $fbdata['location']['name'];
+		}
 	}
 	
 	$plugins->run_hooks("myfbconnect_sync_end", $userData);
@@ -653,8 +820,8 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	if (!empty($userData) AND !empty($user['uid'])) {
 		$db->update_query("users", $userData, "uid = {$user['uid']}");
 	}
-	// make sure we are on iDeviceLAB
-	if (!empty($userfieldsData) AND !empty($user['uid']) AND defined("IDEVICELAB")) {
+	// make sure we can do it
+	if (!empty($userfieldsData) AND !empty($user['uid'])) {
 		if (isset($userfieldsData['uid'])) {
 			$db->insert_query("userfields", $userfieldsData);
 		} else {
@@ -705,12 +872,61 @@ function myfbconnect_login($url)
 	
 	// get the true login url
 	$_loginUrl = $facebook->getLoginUrl(array(
-		'scope' => 'user_birthday, user_location, email'.$extraPermissions,
-		'redirect_uri' => $mybb->settings['bburl'].$url
+		'scope' => 'user_birthday, user_location, email' . $extraPermissions,
+		'redirect_uri' => $mybb->settings['bburl'] . $url
 	));
 	
 	// redirect to ask for permissions or to login if the user already granted them
 	header("Location: " . $_loginUrl);
+}
+
+/**
+ * Displays peekers in settings. Technique ripped from MySupport, please don't blame on me :(
+ * 
+ * @return boolean True if successful, false either.
+ **/
+
+function myfbconnect_settings_footer()
+{
+	global $mybb, $db;
+	if($mybb->input["action"] == "change" && $mybb->request_method != "post")
+	{
+		$gid = myfbconnect_settings_gid();
+		if($mybb->input["gid"] == $gid || !$mybb->input['gid'])
+		{
+			echo '<script type="text/javascript">
+	Event.observe(window, "load", function() {
+	loadMyFBConnectPeekers();
+});
+function loadMyFBConnectPeekers()
+{
+	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_subject"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_message"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_fbbio"), $("row_setting_myfbconnect_fbbiofield"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_fblocation"), $("row_setting_myfbconnect_fblocationfield"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_fbdetails"), $("row_setting_myfbconnect_fbdetailsfield"), /1/, true);
+	new Peeker($$(".setting_myfbconnect_fbsex"), $("row_setting_myfbconnect_fbsexfield"), /1/, true);
+}
+</script>';
+		}
+	}
+}
+
+/**
+ * Gets the gid of MyFacebook Connect settings group.
+ * 
+ * @return mixed The gid.
+ **/
+ 
+function myfbconnect_settings_gid()
+{
+	global $db;
+	
+	$query = $db->simple_select("settinggroups", "gid", "name = 'myfbconnect'", array("limit" => 1));
+	$gid = $db->fetch_field($query, "gid");
+	
+	return intval($gid);
 }
 
 /**

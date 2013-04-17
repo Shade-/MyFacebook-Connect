@@ -11,11 +11,11 @@ $l['myfbconnect_redirect_title'] = "Benvenuto, {1}!";
 // errors
 $l['myfbconnect_error_noconfigfound'] = "Non hai ancora configurato il plugin: o l'ID o la token segreta della tua applicazione su Facebook Developers manca.";
 $l['myfbconnect_error_noauth'] = "Non ci hai autorizzato ad eseguire il login con il tuo account Facebook. Permetti alla nostra applicazione di ricevere i tuoi dati durante il login con Facebook.";
-$l['myfbconnect_error_report'] = "An unknown error occured. The output of the error is:
+$l['myfbconnect_error_report'] = "È occorso un errore sconosciuto. L'output dell'errore è:
 <pre>
 {1}
 </pre>
-Please report this error to an administrator and try again.";
+Segnala il problema ad un amministratore e riprova. Se il problema persiste, consultare un amministratore.";
 $l['myfbconnect_error_alreadyloggedin'] = "Sei già collegato con il tuo account Facebook.";
 $l['myfbconnect_error_unknown'] = "È occorso un errore sconosciuto.";
 
@@ -30,6 +30,7 @@ $l['myfbconnect_settings_fblocation'] = "Località";
 $l['myfbconnect_settings_save'] = "Salva";
 $l['myfbconnect_link'] = "Collega il tuo account a Facebook";
 $l['myfbconnect_settings_whattosync'] = "Seleziona quali informazioni desideri condividere con il tuo account Facebook. Tutte le informazioni verranno aggiornate immediatamente a seconda di quali scegli di sincronizzare. Ricorda che il processo funziona solo in una direzione, ovvero le informazioni vengono aggiunte ma non rimosse!";
+$l['myfbconnect_settings_linkaccount'] = "Premi il pulsante accanto per collegare il tuo account Facebook a quello del Forum. Una volta collegato potrai connetterti con Facebook senza registrarti di nuovo.";
 
 // registration
 $l['myfbconnect_register_title'] = "Registrazione con Facebook";

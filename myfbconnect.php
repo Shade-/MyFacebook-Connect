@@ -133,6 +133,7 @@ if ($mybb->input['action'] == "fbregister") {
 		
 		// register it
 		$newUserData = myfbconnect_register($newuser);
+		
 		// insert options and extra data
 		if($db->update_query('users', $settingsToAdd, 'uid = ' . (int) $newUserData['uid']) AND !empty($newUserData)) {
 			// update on-the-fly that array of data dude!
@@ -161,14 +162,26 @@ if ($mybb->input['action'] == "fbregister") {
 	}
 	
 	$options = "";
+	
 	$settingsToBuild = array(
-		"fbavatar",
+		"fbavatar"
+	);
+	
+	// checking if we want to sync that stuff (admin)
+	$settingsToCheck = array(
+		"fbbday",
 		"fbsex",
 		"fbdetails",
 		"fbbio",
-		"fbbday",
 		"fblocation"
 	);
+	
+	foreach($settingsToCheck as $setting) {
+		$tempKey = 'myfbconnect_'.$setting;
+		if($mybb->settings[$tempKey]) {
+			$settingsToBuild[] = $setting;
+		}
+	}
 	
 	foreach ($settingsToBuild as $setting) {
 		// variable variables. Yay!
