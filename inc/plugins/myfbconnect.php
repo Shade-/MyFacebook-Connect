@@ -532,6 +532,16 @@ function myfbconnect_run($userdata, $justlink = false)
 			
 			$newUserData = myfbconnect_register($user);
 			if ($newUserData) {
+				// enable all options and sync
+				$newUserDataSettings = array(
+					"fbavatar" => 1,
+					"fbbday" => 1,
+					"fbsex" => 1,
+					"fbdetails" => 1,
+					"fbbio" => 1,
+					"fblocation" => 1
+				);
+				$newUserData = array_merge($newUserData, $newUserDataSettings);
 				myfbconnect_sync($newUserData, $user);
 				// after registration we have to log this new user in
 				my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
