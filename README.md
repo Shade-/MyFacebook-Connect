@@ -47,4 +47,4 @@ Would you like to see a feature developed for MyFacebook Connect? No problem, ju
 It is based upon Facebook SDK 3.x. It is free as in freedom.
 
 [1]: http://mods.mybb.com/view/PluginLibrary
-[1]: http://github.com/Shade-/MyFacebook-Connect/wiki
+[2]: http://github.com/Shade-/MyFacebook-Connect/wiki
