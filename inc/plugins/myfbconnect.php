@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0
+ * @version 1.0.1
  */
 
 if (!defined('IN_MYBB')) {
@@ -23,10 +23,10 @@ function myfbconnect_info()
 	return array(
 		'name' => 'MyFacebook Connect',
 		'description' => 'Integrates MyBB with Facebook, featuring login and registration.',
-		'website' => 'https://github.com/Shade-/MyFacebookConnect',
+		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => '1.0',
+		'version' => '1.0.1',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -302,7 +302,7 @@ function myfbconnect_usercp()
 		$lang->load('myfbconnect');
 	}
 	
-	if($mybb->input['action'] == ("fblink" OR "do_fblink" OR "myfbconnect")) {
+	if ($mybb->input['action'] == ("fblink" OR "do_fblink" OR "myfbconnect")) {
 		/* API LOAD */
 		try {
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
@@ -425,19 +425,19 @@ function myfbconnect_usercp()
 				"fblocation"
 			);
 			
-			foreach($settingsToCheck as $setting) {
-				$tempKey = 'myfbconnect_'.$setting;
-				if($mybb->settings[$tempKey]) {
+			foreach ($settingsToCheck as $setting) {
+				$tempKey = 'myfbconnect_' . $setting;
+				if ($mybb->settings[$tempKey]) {
 					$settingsToSelect[] = $setting;
 				}
 			}
 			
 			// join pieces into a string
-			if(!empty($settingsToSelect)) {
-				$settingsToSelect = ",".implode(",", $settingsToSelect);
+			if (!empty($settingsToSelect)) {
+				$settingsToSelect = "," . implode(",", $settingsToSelect);
 			}
 			
-			$query = $db->simple_select("users", "fbavatar".$settingsToSelect, "uid = " . $mybb->user['uid']);
+			$query = $db->simple_select("users", "fbavatar" . $settingsToSelect, "uid = " . $mybb->user['uid']);
 			$userSettings = $db->fetch_array($query);
 			$settings = "";
 			foreach ($userSettings as $setting => $value) {
@@ -531,7 +531,9 @@ function myfbconnect_run($userdata, $justlink = false)
 			}
 			
 			$newUserData = myfbconnect_register($user);
-			if ($newUserData) {
+			if ($newUserData['error']) {
+				return $newUserData;
+			} else {
 				// enable all options and sync
 				$newUserDataSettings = array(
 					"fbavatar" => 1,
@@ -553,8 +555,6 @@ function myfbconnect_run($userdata, $justlink = false)
 				}
 				
 				redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user['name']));
-			} else {
-				error($lang->myfbconnect_error_unknown);
 			}
 		}
 	}
@@ -622,10 +622,9 @@ function myfbconnect_register($user = array())
 			$pmhandler->admin_override = true;
 			
 			// just make sure the admins didn't make something wrong in configuration
-			if(!empty($mybb->settings['myfbconnect_passwordpm_fromid'])) {
+			if (!empty($mybb->settings['myfbconnect_passwordpm_fromid'])) {
 				$fromid = 0;
-			}
-			else {
+			} else {
 				$fromid = (int) $mybb->settings['myfbconnect_passwordpm_fromid'];
 			}
 			
@@ -646,7 +645,9 @@ function myfbconnect_register($user = array())
 				"subject" => $subject,
 				"message" => $message,
 				"fromid" => $fromid,
-				"toid" => array($newUserData['uid'])
+				"toid" => array(
+					$newUserData['uid']
+				)
 			);
 			
 			// some defaults :)
@@ -662,17 +663,16 @@ function myfbconnect_register($user = array())
 			// Now let the pm handler do all the hard work
 			if ($pmhandler->validate_pm()) {
 				$pmhandler->insert_pm();
-			}
-			else {
+			} else {
 				error($lang->sprintf($lang->myfbconnect_error_report, $pmhandler->get_errors()));
 			}
-		}		
+		}
 		// return our newly registered user data
 		return $newUserData;
-	}
-	else {
-		$errors = $userhandler->get_errors();
-		error($lang->sprintf($lang->myfbconnect_error_report, $errors));
+	} else {
+		$errors['error'] = true;
+		$errors['data'] = $userhandler->get_friendly_errors();
+		return $errors;
 	}
 }
 
@@ -693,10 +693,10 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	$userData = array();
 	$userfieldsData = array();
 	
-	$detailsid = "fid".$mybb->settings['myfbconnect_fbdetailsfield'];
-	$locationid = "fid".$mybb->settings['myfbconnect_fblocationfield'];
-	$bioid = "fid".$mybb->settings['myfbconnect_fbbiofield'];
-	$sexid = "fid".$mybb->settings['myfbconnect_fbsexfield'];
+	$detailsid = "fid" . $mybb->settings['myfbconnect_fbdetailsfield'];
+	$locationid = "fid" . $mybb->settings['myfbconnect_fblocationfield'];
+	$bioid = "fid" . $mybb->settings['myfbconnect_fbbiofield'];
+	$sexid = "fid" . $mybb->settings['myfbconnect_fbsexfield'];
 	
 	// ouch! empty facebook data, we need to help this poor guy!
 	if (empty($fbdata)) {
@@ -796,7 +796,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	
 	// sex
 	if ((($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) AND $mybb->settings['myfbconnect_fbsex']) {
-		if($db->field_exists($sexid, "userfields")) {
+		if ($db->field_exists($sexid, "userfields")) {
 			if ($fbdata['gender'] == "male") {
 				// italian fillings... 5h17! workaround needed!
 				$userfieldsData[$sexid] = "Uomo";
@@ -807,19 +807,19 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	}
 	// name and last name
 	if ((($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fbdetails']) {
-		if($db->field_exists($detailsid, "userfields")) {
+		if ($db->field_exists($detailsid, "userfields")) {
 			$userfieldsData[$detailsid] = $fbdata['name'];
 		}
 	}
 	// bio
 	if ((($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbio']) {
-		if($db->field_exists($bioid, "userfields")) {
+		if ($db->field_exists($bioid, "userfields")) {
 			$userfieldsData[$bioid] = htmlspecialchars_decode(my_substr($fbdata['bio'], 0, 400, true));
 		}
 	}
 	// location
 	if ((($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fblocation']) {
-		if($db->field_exists($locationid, "userfields")) {
+		if ($db->field_exists($locationid, "userfields")) {
 			$userfieldsData[$locationid] = $fbdata['location']['name'];
 		}
 	}
@@ -899,11 +899,9 @@ function myfbconnect_login($url)
 function myfbconnect_settings_footer()
 {
 	global $mybb, $db;
-	if($mybb->input["action"] == "change" && $mybb->request_method != "post")
-	{
+	if ($mybb->input["action"] == "change" && $mybb->request_method != "post") {
 		$gid = myfbconnect_settings_gid();
-		if($mybb->input["gid"] == $gid || !$mybb->input['gid'])
-		{
+		if ($mybb->input["gid"] == $gid || !$mybb->input['gid']) {
 			echo '<script type="text/javascript">
 	Event.observe(window, "load", function() {
 	loadMyFBConnectPeekers();
@@ -928,12 +926,14 @@ function loadMyFBConnectPeekers()
  * 
  * @return mixed The gid.
  **/
- 
+
 function myfbconnect_settings_gid()
 {
 	global $db;
 	
-	$query = $db->simple_select("settinggroups", "gid", "name = 'myfbconnect'", array("limit" => 1));
+	$query = $db->simple_select("settinggroups", "gid", "name = 'myfbconnect'", array(
+		"limit" => 1
+	));
 	$gid = $db->fetch_field($query, "gid");
 	
 	return intval($gid);
@@ -952,4 +952,60 @@ function myfbconnect_debug($data)
 	echo var_dump($data);
 	echo "</pre>";
 	exit;
+}
+
+/*****************************************************************************************
+ *
+ * The following is a function used to upgrade from older versions of the plugin
+ *
+ *****************************************************************************************/
+
+if ($mybb->settings['myfbconnect_enabled']) {
+	$plugins->add_hook("admin_page_output_header", "myfbconnect_upgrader");
+}
+
+function myfbconnect_upgrader()
+{
+	
+	global $db, $mybb, $cache, $lang;
+	
+	if (!$lang->myfbconnect) {
+		$lang->load("myfbconnect");
+	}
+	
+	// let's see what version of MyFacebook Connect is currently installed on this board
+	$info = myfbconnect_info();
+	$shadePlugins = $cache->read('shade_plugins');
+	$oldversion = $shadePlugins[$info['name']]['version'];
+	$currentversion = $info['version'];
+	
+	// you need to update buddy!
+	if (version_compare($oldversion, $currentversion, "<")) {
+		flash_message($lang->myfbconnect_error_needtoupdate, "error");
+	}
+	
+	// you are updating, that's nice!
+	if ($mybb->input['upgrade'] == "myfbconnect") {
+		// let's check if you should upgrade first
+		if (version_compare($oldversion, $currentversion, "<")) {
+			// yeah you should
+			// 1.0
+			if (version_compare($oldversion, "1.0", "<=")) {
+				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
+				find_replace_templatesets('myfbconnect_register', '#' . preg_quote('<td valign="top">') . '#i', '<td valign="top">{$errors}');
+			}
+			// update version n° and return a success message
+			$shadePlugins[$info['name']] = array(
+				'title' => $info['name'],
+				'version' => $currentversion
+			);
+			$cache->update('shade_plugins', $shadePlugins);
+			flash_message($lang->sprintf($lang->myfbconnect_success_updated, $oldversion, $currentversion), "success");
+			admin_redirect($_SERVER['HTTP_REFERER']);
+		} else {
+			// you shouldn't
+			flash_message($lang->myfbconnect_error_nothingtodohere, "error");
+			admin_redirect("index.php");
+		}
+	}
 }

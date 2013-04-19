@@ -58,3 +58,10 @@ La tua password casuale è: [b]{password}[/b]
 
 Distinti saluti,
 il Team del Forum";
+
+// errors
+$l['myfbconnect_error_needtoupdate'] = "Sembra che tu abbia installato una versione non aggiornata di MyFacebook Connect. <a href=\"index.php?module=config-settings&upgrade=myfbconnect\">Clicca qui</a> per eseguire lo script di aggiornamento.";
+$l['myfbconnect_error_nothingtodohere'] = "Ooops, MyFacebook Connect è già aggiornato all'ultima versione! Non c'è niente da fare qui...";
+
+// success
+$l['myfbconnect_success_updated'] = "MyFacebook Connect è stato aggiornato correttamente dalla versione {1} alla {2}.";

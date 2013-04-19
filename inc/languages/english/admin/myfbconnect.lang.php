@@ -56,3 +56,10 @@ Your password is: [b]{password}[/b]
 
 With regards,
 our Team";
+
+// errors
+$l['myfbconnect_error_needtoupdate'] = "You seem to have currently installed an outdated version of MyFacebook Connect. Please <a href=\"index.php?module=config-settings&upgrade=myfbconnect\">click here</a> to run the upgrade script.";
+$l['myfbconnect_error_nothingtodohere'] = "Ooops, MyFacebook Connect is already up-to-date! Nothing to do here...";
+
+// success
+$l['myfbconnect_success_updated'] = "MyFacebook Connect has been updated correctly from version {1} to {2}. Good job!";
