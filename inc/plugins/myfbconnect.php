@@ -622,7 +622,7 @@ function myfbconnect_register($user = array())
 			$pmhandler->admin_override = true;
 			
 			// just make sure the admins didn't make something wrong in configuration
-			if (!empty($mybb->settings['myfbconnect_passwordpm_fromid'])) {
+			if (empty($mybb->settings['myfbconnect_passwordpm_fromid']) OR !user_exists($mybb->settings['myfbconnect_passwordpm_fromid'])) {
 				$fromid = 0;
 			} else {
 				$fromid = (int) $mybb->settings['myfbconnect_passwordpm_fromid'];
