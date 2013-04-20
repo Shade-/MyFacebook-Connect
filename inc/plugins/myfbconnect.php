@@ -498,7 +498,7 @@ function myfbconnect_run($userdata, $justlink = false)
 				), "uid = {$mybb->user['uid']}");
 				return;
 			}
-			$db->query("users", array(
+			$db->update_query("users", array(
 				"myfb_uid" => $user['id']
 			), "email = '{$user['email']}'");
 			$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");

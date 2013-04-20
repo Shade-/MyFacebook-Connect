@@ -1,19 +1,24 @@
 <tr>
 	<td class="tcat">
 		<div class="expcolimage">
-			<img src="{$theme['imgdir']}/collapse{$collapsedimg['usercpfacebook']}.gif" id="usercpalerts_img" class="expander" alt="[-]" title="[-]" />
+			<img src="{$theme['imgdir']}/collapse{$collapsedimg['usercpfacebook']}.gif" id="usercpalerts_img" class="expander" alt="[-]" title="[-]"/>
 		</div>
 		<div>
 			<span class="smalltext">
-				<strong>{$lang->myfbconnect_settings_title}</strong>
+			<strong>{$lang->myfbconnect_settings_title}</strong>
 			</span>
 		</div>
 	</td>
 </tr>
 <tbody style="{$collapsed['usercpfacebook_e']}" id="usercpfacebook_e">
-	<tr>
-		<td class="trow1 smalltext">
-			<a href="usercp.php?action=myfbconnect" class="usercp_nav_item">{$lang->myfbconnect_settings_title}</a>
-		</td>
-	</tr>
+<tr>
+	<td class="trow1 smalltext">
+		<a href="usercp.php?action=myfbconnect" class="usercp_nav_item usercp_nav_facebook">{$lang->myfbconnect_settings_title}</a>
+	</td>
+</tr>
 </tbody>
+<style type="text/css">
+.usercp_nav_facebook {
+	background: url('images/usercp/facebook.png') no-repeat left center;
+}
+</style>
