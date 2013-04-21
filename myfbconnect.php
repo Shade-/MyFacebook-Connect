@@ -68,25 +68,19 @@ if ($mybb->input['action'] == "do_fblogin") {
 		error($lang->myfbconnect_error_alreadyloggedin);
 	}
 	
-	// get the user
-	$user = $facebook->getUser();
-	if ($user) {
-		// user found and logged in
-		try {
-			// get the user public data
-			$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
-			// let our handler do all the hard work
-			$magic = myfbconnect_run($userdata);
-			if ($magic['error']) {
-				$errors = $magic['data'];
-				$mybb->input['action'] = "fbregister";
-			}
+	// user found and logged in
+	try {
+		// get the user public data
+		$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
+		// let our handler do all the hard work
+		$magic = myfbconnect_run($userdata);
+		if ($magic['error']) {
+			$errors = $magic['data'];
+			$mybb->input['action'] = "fbregister";
 		}
-		// user found, but permissions denied
-		catch (FacebookApiException $e) {
-			error($lang->myfbconnect_error_noauth);
-		}
-	} else {
+	}
+	// user found, but permissions denied
+	catch (FacebookApiException $e) {
 		error($lang->myfbconnect_error_noauth);
 	}
 }

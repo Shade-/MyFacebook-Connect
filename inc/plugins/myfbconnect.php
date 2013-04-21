@@ -584,6 +584,28 @@ function myfbconnect_run($userdata, $justlink = false)
 }
 
 /**
+ * Unlink any Facebook account from the corresponding MyBB account.
+ * 
+ * @param int The UID of the user you want to unlink.
+ * @return boolean True if successful, false if unsuccessful.
+ **/
+
+function myfbconnect_unlink($uid)
+{
+	
+	global $db;
+	
+	$uid = (int) $uid;
+	
+	$reset = array(
+		"myfb_uid" => 0
+	);
+	
+	$db->update_query("users", $reset, "uid = {$uid}");
+	
+}
+
+/**
  * Registers an user, provided an array with valid data.
  * 
  * @param array The data of the user to register. name and email keys must be present.
@@ -870,6 +892,14 @@ function myfbconnect_login($url)
 		'appId' => $appID,
 		'secret' => $appSecret
 	));
+	
+	try {
+		$user = $facebook->api("/me");
+		header("Location: ".$mybb->settings['bburl'].$url);
+	}
+	catch (FacebookApiException $e) {
+		$noauth = true;
+	}
 	
 	// empty configuration
 	if (empty($appID) OR empty($appSecret)) {
