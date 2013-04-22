@@ -751,7 +751,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	$query = $db->simple_select("userfields", "*", "ufid = {$user['uid']}");
 	$userfields = $db->fetch_array($query);
 	if (empty($userfields)) {
-		$userfieldsData['uid'] = $user['uid'];
+		$userfieldsData['ufid'] = $user['uid'];
 	}
 	
 	// facebook id, if empty we need to sync it
@@ -854,7 +854,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	}
 	// make sure we can do it
 	if (!empty($userfieldsData) AND !empty($user['uid'])) {
-		if (isset($userfieldsData['uid'])) {
+		if (isset($userfieldsData['ufid'])) {
 			$db->insert_query("userfields", $userfieldsData);
 		} else {
 			$db->update_query("userfields", $userfieldsData, "ufid = {$user['uid']}");
