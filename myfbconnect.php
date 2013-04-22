@@ -9,14 +9,12 @@
  * @page Main
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0.1
+ * @version 1.0.2
  */
 
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'myfbconnect.php');
 define('ALLOWABLE_PAGE', 'fblogin,fbregister,do_fblogin');
-// registration might fail for custom profile fields required at registration... workaround = IN_ADMINCP defined
-define("IN_ADMINCP", 1);
 
 require_once "./global.php";
 
@@ -132,6 +130,11 @@ if ($mybb->input['action'] == "fbregister") {
 				$settingsToAdd[$setting] = 0;
 			}
 		}
+				
+		/* Registration might fail for custom profile fields required at registration... workaround = IN_ADMINCP defined.
+		 Placed straight before the registration process to avoid conflicts with third party plugins messying around with
+		 templates (I'm looking at you, PHPTPL) */
+		define("IN_ADMINCP", 1);
 		
 		// register it
 		$newUserData = myfbconnect_register($newuser);
@@ -198,6 +201,14 @@ if ($mybb->input['action'] == "fbregister") {
 		$label = $lang->$tempKey;
 		$altbg = alt_trow();
 		eval("\$options .= \"" . $templates->get('myfbconnect_register_settings_setting') . "\";");
+	}
+		
+	// if registration failed, we certainly have some custom inputs, so we have to display them instead of the Facebook ones
+	if(!empty($mybb->input['username'])) {
+		$userdata['name'] = $mybb->input['username'];
+	}
+	if(!empty($mybb->input['email'])) {
+		$userdata['email'] = $mybb->input['email'];
 	}
 	
 	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$userdata['name']}\" />";

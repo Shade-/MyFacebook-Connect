@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0.1
+ * @version 1.0.2
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => '1.0.1',
+		'version' => '1.0.2',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
