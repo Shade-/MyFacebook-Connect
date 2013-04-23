@@ -302,7 +302,7 @@ function myfbconnect_usercp()
 		$lang->load('myfbconnect');
 	}
 	
-	if ($mybb->input['action'] == ("fblink" OR "do_fblink" OR "myfbconnect")) {
+	if ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") OR $mybb->request_method == 'post') {
 		/* API LOAD */
 		try {
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
@@ -363,7 +363,9 @@ function myfbconnect_usercp()
 		add_breadcrumb($lang->myfbconnect_page_title, 'usercp.php?action=myfbconnect');
 		
 		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
-		if ($mybb->request_method == 'post' OR ($facebook->getAccessToken() && $mybb->input['code'])) {
+		if ($mybb->request_method == 'post' OR $_SESSION['fb_islogginin']) {
+			
+			session_start();
 			
 			if ($mybb->request_method == 'post') {
 				verify_post_check($mybb->input['my_post_key']);
@@ -392,6 +394,7 @@ function myfbconnect_usercp()
 			
 			if (!$facebook->getUser()) {
 				$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
+				$_SESSION['fb_islogginin'] = true;
 				myfbconnect_login($loginUrl);
 			}
 			
@@ -400,6 +403,8 @@ function myfbconnect_usercp()
 				$newUser = array_merge($mybb->user, $settings);
 				// oh yeah, let's sync!
 				myfbconnect_sync($newUser);
+				
+				unset($_SESSION['fb_islogginin']);
 				// inline success support
 				if (function_exists(inline_success)) {
 					$inlinesuccess = inline_success($lang->myfbconnect_success_settingsupdated);
