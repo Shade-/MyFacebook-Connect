@@ -363,7 +363,7 @@ function myfbconnect_usercp()
 		add_breadcrumb($lang->myfbconnect_page_title, 'usercp.php?action=myfbconnect');
 		
 		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
-		if ($mybb->request_method == 'post' OR $_SESSION['fb_islogginin']) {
+		if ($mybb->request_method == 'post' OR $_SESSION['fb_isloggingin']) {
 			
 			session_start();
 			
@@ -394,7 +394,8 @@ function myfbconnect_usercp()
 			
 			if (!$facebook->getUser()) {
 				$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
-				$_SESSION['fb_islogginin'] = true;
+				// used for recognizing an active settings update process later on
+				$_SESSION['fb_isloggingin'] = true;
 				myfbconnect_login($loginUrl);
 			}
 			
@@ -404,7 +405,8 @@ function myfbconnect_usercp()
 				// oh yeah, let's sync!
 				myfbconnect_sync($newUser);
 				
-				unset($_SESSION['fb_islogginin']);
+				// we don't need fb_isloggingin anymore
+				unset($_SESSION['fb_isloggingin']);
 				// inline success support
 				if (function_exists(inline_success)) {
 					$inlinesuccess = inline_success($lang->myfbconnect_success_settingsupdated);
@@ -638,6 +640,11 @@ function myfbconnect_register($user = array())
 		"regip" => $session->ipaddress,
 		"longregip" => my_ip2long($session->ipaddress)
 	);
+		
+	/* Registration might fail for custom profile fields required at registration... workaround = IN_ADMINCP defined.
+	 Placed straight before the registration process to avoid conflicts with third party plugins messying around with
+	 templates (I'm looking at you, PHPTPL) */
+	define("IN_ADMINCP", 1);
 	
 	$userhandler->set_data($newUser);
 	if ($userhandler->validate_user()) {
@@ -898,9 +905,11 @@ function myfbconnect_login($url)
 		'secret' => $appSecret
 	));
 	
+	// if we have got an active access token it might be possible to login directly, without passing through Facebook
 	try {
 		$user = $facebook->api("/me");
 		header("Location: ".$mybb->settings['bburl'].$url);
+		return;
 	}
 	catch (FacebookApiException $e) {
 		$noauth = true;
@@ -923,6 +932,7 @@ function myfbconnect_login($url)
 	
 	// redirect to ask for permissions or to login if the user already granted them
 	header("Location: " . $_loginUrl);
+	return;
 }
 
 /**
