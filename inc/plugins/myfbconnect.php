@@ -302,7 +302,7 @@ function myfbconnect_usercp()
 		$lang->load('myfbconnect');
 	}
 	
-	if ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") OR $mybb->request_method == 'post') {
+	if ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") OR ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") AND $mybb->request_method == 'post')) {
 		/* API LOAD */
 		try {
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
