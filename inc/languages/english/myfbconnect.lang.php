@@ -43,3 +43,7 @@ $l['myfbconnect_register_email'] = "Email:";
 $l['myfbconnect_success_linked'] = "Your account on this board has been correctly linked to your Facebook's one.";
 $l['myfbconnect_success_settingsupdated'] = "Your Facebook integration related settings have been updated correctly.";
 $l['myfbconnect_success_settingsupdated_title'] = "Settings updated";
+
+// who's online
+$l['myfbconnect_viewing_loggingin'] = "<a href=\"myfbconnect.php?action=fblogin\">Logging in with Facebook</a>";
+$l['myfbconnect_viewing_registering'] = "<a href=\"myfbconnect.php?action=fbregister\">Registering with Facebook</a>";

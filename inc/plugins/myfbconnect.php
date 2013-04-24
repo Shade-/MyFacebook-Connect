@@ -253,6 +253,8 @@ if ($settings['myfbconnect_enabled']) {
 	$plugins->add_hook('usercp_menu', 'myfbconnect_usercp_menu', 40);
 	$plugins->add_hook('usercp_start', 'myfbconnect_usercp');
 	$plugins->add_hook("admin_page_output_footer", "myfbconnect_settings_footer");
+	$plugins->add_hook("fetch_wol_activity_end", "myfbconnect_fetch_wol_activity");
+	$plugins->add_hook("build_friendly_wol_location_end", "myfbconnect_build_wol_location");
 }
 
 function myfbconnect_global()
@@ -983,6 +985,67 @@ function myfbconnect_settings_gid()
 	
 	return intval($gid);
 }
+
+function myfbconnect_fetch_wol_activity(&$user_activity)
+{
+    global $user, $mybb;
+
+    // get the base filename
+    $split_loc = explode(".php", $user_activity['location']);
+    if($split_loc[0] == $user['location'])
+    {
+        $filename = '';
+    }
+    else
+    {
+        $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
+    }
+
+    // get parameters of the URI
+    if($split_loc[1])
+    {
+        $temp = explode("&amp;", my_substr($split_loc[1], 1));
+        foreach($temp as $param)
+        {
+            $temp2 = explode("=", $param, 2);
+            $temp2[0] = str_replace("amp;", '', $temp2[0]);
+            $parameters[$temp2[0]] = $temp2[1];
+        }
+    }
+    
+	// if our plugin is found, store our custom vars in the main $user_activity array
+    switch($filename)
+    {
+        case "myfbconnect":
+            if($parameters['action'])
+            {
+				$user_activity['activity'] = $parameters['action'];
+            }
+			break;
+    }
+    
+    return $user_activity;
+} 
+
+function myfbconnect_build_wol_location(&$plugin_array)
+{
+    global $db, $lang, $mybb, $_SERVER;
+    
+    $lang->load('myfbconnect');
+	
+	// let's see what action we are watching
+    switch($plugin_array['user_activity']['activity'])
+    {
+        case "fblogin":
+		case "do_fblogin":
+            $plugin_array['location_name'] = $lang->myfbconnect_viewing_loggingin;
+			break;
+		case "fbregister":
+            $plugin_array['location_name'] = $lang->myfbconnect_viewing_registering;
+            break;
+    }
+    return $plugin_array;
+} 
 
 /**
  * Debugs any type of data.
