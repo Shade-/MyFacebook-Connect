@@ -133,24 +133,28 @@ if ($mybb->input['action'] == "fbregister") {
 		}
 		
 		// register it
-		$newUserData = myfbconnect_register($newuser);
+		$user_info = myfbconnect_register($newuser);
 		
 		// insert options and extra data
-		if ($db->update_query('users', $settingsToAdd, 'uid = ' . (int) $newUserData['uid']) AND !($newUserData['error'])) {
+		if ($db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user_info['uid']) AND !($user_info['error'])) {
+		
+			// compatibility with third party plugins which affects registration (MyAlerts for example)
+			$plugins->run_hooks("member_do_register_end");
+			
 			// update on-the-fly that array of data dude!
-			$newUser = array_merge($newUserData, $settingsToAdd);
+			$newUser = array_merge($user_info, $settingsToAdd);
 			// oh yeah, let's sync!
 			myfbconnect_sync($newUser);
 			
 			// login the user normally, and we have finished.	
 			$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");
 			$newsession = array(
-				"uid" => $newUserData['uid']
+				"uid" => $user_info['uid']
 			);
 			$db->update_query("sessions", $newsession, "sid='" . $session->sid . "'");
 			
 			// finally log the user in
-			my_setcookie("mybbuser", $newUserData['uid'] . "_" . $newUserData['loginkey'], null, true);
+			my_setcookie("mybbuser", $user_info['uid'] . "_" . $user_info['loginkey'], null, true);
 			my_setcookie("sid", $session->sid, -1, true);
 			// redirect the user to where he came from
 			if ($mybb->input['redUrl'] AND strpos($mybb->input['redUrl'], "action=fblogin") === false AND strpos($mybb->input['redUrl'], "action=fbregister") === false) {
@@ -158,9 +162,9 @@ if ($mybb->input['action'] == "fbregister") {
 			} else {
 				$redirect_url = "index.php";
 			}
-			redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $newUserData['username']));
+			redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user_info['username']));
 		} else {
-			$errors = $newUserData['data'];
+			$errors = $user_info['data'];
 		}
 	}
 	

@@ -650,7 +650,7 @@ function myfbconnect_register($user = array())
 	
 	$userhandler->set_data($newUser);
 	if ($userhandler->validate_user()) {
-		$newUserData = $userhandler->insert_user();
+		$user_info = $userhandler->insert_user();
 		
 		if ($mybb->settings['myfbconnect_passwordpm']) {
 			require_once MYBB_ROOT . "inc/datahandlers/pm.php";
@@ -668,7 +668,7 @@ function myfbconnect_register($user = array())
 			$subject = $mybb->settings['myfbconnect_passwordpm_subject'];
 			
 			$thingsToReplace = array(
-				"{user}" => $newUserData['username'],
+				"{user}" => $user_info['username'],
 				"{password}" => $password
 			);
 			
@@ -682,7 +682,7 @@ function myfbconnect_register($user = array())
 				"message" => $message,
 				"fromid" => $fromid,
 				"toid" => array(
-					$newUserData['uid']
+					$user_info['uid']
 				)
 			);
 			
@@ -700,11 +700,12 @@ function myfbconnect_register($user = array())
 			if ($pmhandler->validate_pm()) {
 				$pmhandler->insert_pm();
 			} else {
-				error($lang->sprintf($lang->myfbconnect_error_report, $pmhandler->get_errors()));
+				error($lang->sprintf($lang->myfbconnect_error_report, $pmhandler->get_friendly_errors()));
 			}
 		}
+		
 		// return our newly registered user data
-		return $newUserData;
+		return $user_info;
 	} else {
 		$errors['error'] = true;
 		$errors['data'] = $userhandler->get_friendly_errors();
@@ -778,7 +779,10 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	
 	// avatar
 	if (($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) {
-		$userData["avatar"] = $db->escape_string("http://graph.facebook.com/{$fbdata['id']}/picture?type=large");
+		
+		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
+		
+		$userData["avatar"] = $db->escape_string("http://graph.facebook.com/{$fbdata['id']}/picture?width={$maxwidth}&height={$maxheight}");
 		$userData["avatartype"] = "remote";
 		
 		// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
@@ -794,8 +798,6 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 				$avatar_error = true;
 			}
 		}
-		
-		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
 		
 		if (empty($avatar_error)) {
 			if ($width AND $height AND $mybb->settings['maxavatardims'] != "") {
