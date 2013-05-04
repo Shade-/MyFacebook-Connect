@@ -909,16 +909,6 @@ function myfbconnect_login($url)
 		'secret' => $appSecret
 	));
 	
-	// if we have got an active access token it might be possible to login directly, without passing through Facebook
-	try {
-		$user = $facebook->api("/me");
-		header("Location: ".$mybb->settings['bburl'].$url);
-		return;
-	}
-	catch (FacebookApiException $e) {
-		$noauth = true;
-	}
-	
 	// empty configuration
 	if (empty($appID) OR empty($appSecret)) {
 		error($lang->myfbconnect_error_noconfigfound);
