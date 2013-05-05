@@ -1,7 +1,7 @@
 MyFacebook Connect
 ===============================
 
-> **Current version** 1.0.2  
+> **Current version** 1.0.2.1  
 > **Dependencies** [PluginLibrary][1]  
 > **Author** Shade  
 
