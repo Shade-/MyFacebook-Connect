@@ -846,19 +846,19 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	// name and last name
 	if ((($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fbdetails']) {
 		if ($db->field_exists($detailsid, "userfields")) {
-			$userfieldsData[$detailsid] = $fbdata['name'];
+			$userfieldsData[$detailsid] = $db->escape_string($fbdata['name']);
 		}
 	}
 	// bio
 	if ((($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbio']) {
 		if ($db->field_exists($bioid, "userfields")) {
-			$userfieldsData[$bioid] = htmlspecialchars_decode(my_substr($fbdata['bio'], 0, 400, true));
+			$userfieldsData[$bioid] = $db->escape_string(htmlspecialchars_decode(my_substr($fbdata['bio'], 0, 400, true)));
 		}
 	}
 	// location
 	if ((($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fblocation']) {
 		if ($db->field_exists($locationid, "userfields")) {
-			$userfieldsData[$locationid] = $fbdata['location']['name'];
+			$userfieldsData[$locationid] = $db->escape_string($fbdata['location']['name']);
 		}
 	}
 	
