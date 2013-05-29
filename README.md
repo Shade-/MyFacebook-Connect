@@ -1,7 +1,7 @@
 MyFacebook Connect
 ===============================
 
-> **Current version** 1.0.2.1  
+> **Current version** 1.0.3  
 > **Dependencies** [PluginLibrary][1]  
 > **Author** Shade  
 
@@ -25,6 +25,7 @@ MyFacebook Connect currently comes with the following feature list:
 * You can set a post-registration usergroup to insert the Facebook-registered users, meaning a smoother user experience
 * You can notify a newly registered user with a PM containing his randomly generated password. You have full control on the subject, the sender and the message of the PM that you can edit from your Admin Control Panel
 * You have full control over synchronized data. You can choose what data to let your users sync with their Facebook accounts by simply enabling the settings into the Admin Control Panel
+* You can decide whether to restrict registration to verified-only Facebook users to prevent spam and bots registering to your board
 * Redirects logged in/registered users to the same page they came from
 * *It works*
 * *It's free*

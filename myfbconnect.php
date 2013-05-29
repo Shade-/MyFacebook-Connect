@@ -9,7 +9,7 @@
  * @page Main
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0.2.1
+ * @version 1.0.3
  */
 
 define("IN_MYBB", 1);
@@ -70,7 +70,7 @@ if ($mybb->input['action'] == "do_fblogin") {
 	// user found and logged in
 	try {
 		// get the user public data
-		$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
+		$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location,verified");
 		// let our handler do all the hard work
 		$magic = myfbconnect_run($userdata);
 		if ($magic['error']) {
@@ -80,7 +80,7 @@ if ($mybb->input['action'] == "do_fblogin") {
 	}
 	// user found, but permissions denied
 	catch (FacebookApiException $e) {
-		error($lang->myfbconnect_error_noauth);
+		error($lang->sprintf($lang->myfbconnect_error_report, print_r($e)));
 	}
 }
 
@@ -99,11 +99,11 @@ if ($mybb->input['action'] == "fbregister") {
 	} else {
 		try {
 			// get the user public data
-			$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location");
+			$userdata = $facebook->api("/me?fields=id,name,email,cover,birthday,website,gender,bio,location,verified");
 		}
 		// user found, but permissions denied
 		catch (FacebookApiException $e) {
-			error($lang->myfbconnect_error_noauth);
+			error($lang->sprintf($lang->myfbconnect_error_report, print_r($e)));
 		}
 	}
 	

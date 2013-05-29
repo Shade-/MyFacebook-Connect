@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0.2.1
+ * @version 1.0.3
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => '1.0.2.1',
+		'version' => '1.0.3',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -90,6 +90,11 @@ function myfbconnect_install()
 		'requestpublishingperms' => array(
 			'title' => $lang->myfbconnect_settings_requestpublishingperms,
 			'description' => $lang->myfbconnect_settings_requestpublishingperms_desc,
+			'value' => '0'
+		),
+		'verifiedonly' => array(
+			'title' => $lang->myfbconnect_settings_verifiedonly,
+			'description' => $lang->myfbconnect_settings_verifiedonly_desc,
 			'value' => '0'
 		),
 		'passwordpm' => array(
@@ -485,6 +490,13 @@ function myfbconnect_run($userdata, $justlink = false)
 	global $mybb, $db, $session, $lang;
 	
 	$user = $userdata;
+	
+	// verified only?
+	if ($mybb->settings['myfbconnect_verifiedonly']) {
+		if ($userdata['verified'] == false) {
+			error($lang->myfbconnect_error_verifiedonly);
+		}
+	}
 	
 	// See if this user is already present in our database
 	if (!$justlink) {
@@ -1054,11 +1066,11 @@ function myfbconnect_debug($data)
 	exit;
 }
 
-/*****************************************************************************************
+/********************************************************************************************************
  *
- * The following is a function used to upgrade from older versions of the plugin
+ * ON-THE-FLY UPGRADING SYSTEM: used to upgrade from any older version to any newer version of the plugin
  *
- *****************************************************************************************/
+ ********************************************************************************************************/
 
 if ($mybb->settings['myfbconnect_enabled']) {
 	$plugins->add_hook("admin_page_output_header", "myfbconnect_upgrader");
@@ -1086,13 +1098,34 @@ function myfbconnect_upgrader()
 	
 	// you are updating, that's nice!
 	if ($mybb->input['upgrade'] == "myfbconnect") {
-		// let's check if you should upgrade first
+		// but let's check if you should upgrade first
 		if (version_compare($oldversion, $currentversion, "<")) {
 			// yeah you should
-			// 1.0
-			if (version_compare($oldversion, "1.0", "<=")) {
+			// to 1.0.1
+			if (version_compare($oldversion, "1.0.1", "<")) {
 				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
 				find_replace_templatesets('myfbconnect_register', '#' . preg_quote('<td valign="top">') . '#i', '<td valign="top">{$errors}');
+			}
+			// to 1.0.3
+			if (version_compare($oldversion, "1.0.3", "<")) {
+				// get the gid of the settings group
+				$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
+				$gid = (int) $db->fetch_field($query, "gid");
+				
+				$newsetting = array(
+					"name" => "myfbconnect_verifiedonly",
+					"title" => $db->escape_string($lang->myfbconnect_settings_verifiedonly),
+					"description" => $db->escape_string($lang->myfbconnect_settings_verifiedonly_desc),
+					"optionscode" => "yesno",
+					"value" => "0",
+					"disporder" => "7",
+					"gid" => $gid
+				);
+				// add the new setting
+				$db->insert_query("settings", $newsetting);
+				
+				// rebuild settings and here we go!
+				rebuild_settings();
 			}
 			// update version n° and return a success message
 			$shadePlugins[$info['name']] = array(

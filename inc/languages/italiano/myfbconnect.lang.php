@@ -17,6 +17,7 @@ $l['myfbconnect_error_report'] = "È occorso un errore sconosciuto. L'output del
 </pre>
 Segnala il problema ad un amministratore e riprova. Se il problema persiste, consultare un amministratore.";
 $l['myfbconnect_error_alreadyloggedin'] = "Sei già collegato con il tuo account Facebook.";
+$l['myfbconnect_error_verifiedonly'] = "Solo gli utenti verificati possono registrarsi con Facebook. Verifica il tuo account Facebook prima di tentare di registrarti nuovamente su questo Forum.";
 $l['myfbconnect_error_unknown'] = "È occorso un errore sconosciuto.";
 
 // usercp

@@ -17,6 +17,7 @@ $l['myfbconnect_error_report'] = "An unknown error occured. The output of the er
 </pre>
 Please report this error to an administrator and try again.";
 $l['myfbconnect_error_alreadyloggedin'] = "You are already logged into the board.";
+$l['myfbconnect_error_verifiedonly'] = "Only verified Facebook accounts are allowed to register. Please verify your Facebook account before tempting to register here again.";
 $l['myfbconnect_error_unknown'] = "An unknown error occured.";
 
 // usercp
