@@ -29,6 +29,8 @@ $l['myfbconnect_settings_passwordpm_message'] = "PM message";
 $l['myfbconnect_settings_passwordpm_fromid'] = "PM sender";
 $l['myfbconnect_settings_passwordpm_fromid_desc'] = "Insert the UID of the user who will be the sender of the PM. By default is set to 0 which is MyBB Engine, but you can change it to whatever you like.";
 // custom fields support, yay!
+$l['myfbconnect_settings_fbavatar'] = "Sync avatar and cover";
+$l['myfbconnect_settings_fbavatar_desc'] = "If you would like to import avatar and cover from Facebook (and let users decide to sync them) enable this option.";
 $l['myfbconnect_settings_fbbday'] = "Sync birthday";
 $l['myfbconnect_settings_fbbday_desc'] = "If you would like to import birthday from Facebook (and let users decide to sync it) enable this option.";
 $l['myfbconnect_settings_fblocation'] = "Sync location";

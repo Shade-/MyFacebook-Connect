@@ -17,12 +17,13 @@ $l['myfbconnect_error_report'] = "An unknown error occured. The output of the er
 </pre>
 Please report this error to an administrator and try again.";
 $l['myfbconnect_error_alreadyloggedin'] = "You are already logged into the board.";
-$l['myfbconnect_error_verifiedonly'] = "Only verified Facebook accounts are allowed to register. Please verify your Facebook account before tempting to register here again.";
+$l['myfbconnect_error_verifiedonly'] = "Only verified Facebook accounts are allowed to register or login. Please verify your Facebook account before tempting to register or login here again.";
 $l['myfbconnect_error_unknown'] = "An unknown error occured.";
 
 // usercp
 $l['myfbconnect_settings_title'] = "Facebook integration";
 $l['myfbconnect_settings_save'] = "Save";
+$l['myfbconnect_settings_unlink'] = "Unlink my account";
 $l['myfbconnect_settings_fbavatar'] = "Avatar and cover";
 $l['myfbconnect_settings_fbsex'] = "Sex";
 $l['myfbconnect_settings_fbbio'] = "Bio";
@@ -44,6 +45,8 @@ $l['myfbconnect_register_email'] = "Email:";
 $l['myfbconnect_success_linked'] = "Your account on this board has been correctly linked to your Facebook's one.";
 $l['myfbconnect_success_settingsupdated'] = "Your Facebook integration related settings have been updated correctly.";
 $l['myfbconnect_success_settingsupdated_title'] = "Settings updated";
+$l['myfbconnect_success_accunlinked'] = "Your Facebook account has been unlinked successfully from your MyBB's one.";
+$l['myfbconnect_success_accunlinked_title'] = "Account unlinked";
 
 // who's online
 $l['myfbconnect_viewing_loggingin'] = "<a href=\"myfbconnect.php?action=fblogin\">Logging in with Facebook</a>";

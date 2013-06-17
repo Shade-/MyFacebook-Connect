@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.0.3
+ * @version 1.1
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => '1.0.3',
+		'version' => '1.1',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -119,6 +119,12 @@ function myfbconnect_install()
 			'description' => $lang->myfbconnect_settings_passwordpm_fromid_desc,
 			'optionscode' => 'text',
 			'value' => ''
+		),
+		// avatar and cover
+		'fbavatar' => array(
+			'title' => $lang->myfbconnect_settings_fbavatar,
+			'description' => $lang->myfbconnect_settings_fbavatar_desc,
+			'value' => '1'
 		),
 		// birthday
 		'fbbday' => array(
@@ -304,6 +310,15 @@ function myfbconnect_usercp()
 {
 	
 	global $mybb, $lang;
+
+	$settingsToCheck = array(
+		"fbavatar",
+		"fbbday",
+		"fbsex",
+		"fbdetails",
+		"fbbio",
+		"fblocation"
+	);
 	
 	if (!$lang->myfbconnect) {
 		$lang->load('myfbconnect');
@@ -345,7 +360,7 @@ function myfbconnect_usercp()
 		// get the user
 		$user = $facebook->getUser();
 		if ($user) {
-			$userdata['id'] = $user;
+			$userdata = $facebook->api("/me?fields=id,verified");
 			// true means only link
 			myfbconnect_run($userdata, true);
 			// inline success support
@@ -372,53 +387,58 @@ function myfbconnect_usercp()
 		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
 		if ($mybb->request_method == 'post' OR $_SESSION['fb_isloggingin']) {
 			
-			session_start();
+			if (!session_id()) {
+				session_start();
+			}
 			
 			if ($mybb->request_method == 'post') {
 				verify_post_check($mybb->input['my_post_key']);
 			}
 			
-			$settings = array();
-			$settingsToCheck = array(
-				"fbavatar",
-				"fbsex",
-				"fbdetails",
-				"fbbio",
-				"fbbday",
-				"fblocation"
-			);
-			
-			// having some fun with variable variables
-			foreach ($settingsToCheck as $setting) {
-				if ($mybb->input[$setting] == 1) {
-					$settings[$setting] = 1;
-				} else {
-					$settings[$setting] = 0;
-				}
-				// building the extra data passed to the redirect url of the login function
-				$loginUrlExtra .= "&{$setting}=" . $settings[$setting];
-			}
-			
-			if (!$facebook->getUser()) {
-				$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
-				// used for recognizing an active settings update process later on
-				$_SESSION['fb_isloggingin'] = true;
-				myfbconnect_login($loginUrl);
-			}
-			
-			if ($db->update_query('users', $settings, 'uid = ' . (int) $mybb->user['uid'])) {
-				// update on-the-fly that array of data dude!
-				$newUser = array_merge($mybb->user, $settings);
-				// oh yeah, let's sync!
-				myfbconnect_sync($newUser);
-				
-				// we don't need fb_isloggingin anymore
-				unset($_SESSION['fb_isloggingin']);
+			// unlinking his FB account... what a pity! :(
+			if ($mybb->input['unlink']) {
+				myfbconnect_unlink($mybb->user['uid']);
 				// inline success support
 				if (function_exists(inline_success)) {
-					$inlinesuccess = inline_success($lang->myfbconnect_success_settingsupdated);
+					$inlinesuccess = inline_success($lang->myfbconnect_success_accunlinked);
 				} else {
-					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
+					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_accunlinked, $lang->myfbconnect_success_accunlinked_title);
+				}
+			} else {						
+				$settings = array();
+				
+				// having some fun with variable variables
+				foreach ($settingsToCheck as $setting) {
+					if ($mybb->input[$setting] == 1) {
+						$settings[$setting] = 1;
+					} else {
+						$settings[$setting] = 0;
+					}
+					// building the extra data passed to the redirect url of the login function
+					$loginUrlExtra .= "&{$setting}=" . $settings[$setting];
+				}
+				
+				if (!$facebook->getUser()) {
+					$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
+					// used for recognizing an active settings update process later on
+					$_SESSION['fb_isloggingin'] = true;
+					myfbconnect_login($loginUrl);
+				}
+				
+				if ($db->update_query('users', $settings, 'uid = ' . (int) $mybb->user['uid'])) {
+					// update on-the-fly that array of data dude!
+					$newUser = array_merge($mybb->user, $settings);
+					// oh yeah, let's sync!
+					myfbconnect_sync($newUser);
+					
+					// we don't need fb_isloggingin anymore
+					unset($_SESSION['fb_isloggingin']);
+					// inline success support
+					if (function_exists(inline_success)) {
+						$inlinesuccess = inline_success($lang->myfbconnect_success_settingsupdated);
+					} else {
+						redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
+					}
 				}
 			}
 		}
@@ -430,15 +450,8 @@ function myfbconnect_usercp()
 		if ($alreadyThere) {
 			
 			$text = $lang->myfbconnect_settings_whattosync;
-			// checking if we want to sync that stuff
-			$settingsToCheck = array(
-				"fbbday",
-				"fbsex",
-				"fbdetails",
-				"fbbio",
-				"fblocation"
-			);
-			
+			$unlink = "<input type=\"submit\" class=\"button\" name=\"unlink\" value=\"{$lang->myfbconnect_settings_unlink}\" />";
+			// checking if we want to sync that stuff			
 			foreach ($settingsToCheck as $setting) {
 				$tempKey = 'myfbconnect_' . $setting;
 				if ($mybb->settings[$tempKey]) {
@@ -448,10 +461,10 @@ function myfbconnect_usercp()
 			
 			// join pieces into a string
 			if (!empty($settingsToSelect)) {
-				$settingsToSelect = "," . implode(",", $settingsToSelect);
+				$settingsToSelect = implode(",", $settingsToSelect);
 			}
 			
-			$query = $db->simple_select("users", "fbavatar" . $settingsToSelect, "uid = " . $mybb->user['uid']);
+			$query = $db->simple_select("users", $settingsToSelect, "uid = " . $mybb->user['uid']);
 			$userSettings = $db->fetch_array($query);
 			$settings = "";
 			foreach ($userSettings as $setting => $value) {
@@ -790,7 +803,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	// (USER SETTINGS AND !empty(FACEBOOK VALUE)) OR $bypass (eventually ADMIN SETTINGS)
 	
 	// avatar
-	if (($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) {
+	if ((($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) AND $mybb->settings['myfbconnect_fbavatar']) {
 		
 		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
 		
@@ -1126,6 +1139,29 @@ function myfbconnect_upgrader()
 				
 				// rebuild settings and here we go!
 				rebuild_settings();
+			}
+			// to 1.1
+			if (version_compare($oldversion, "1.1", "<")) {
+				// get the gid of the settings group
+				$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
+				$gid = (int) $db->fetch_field($query, "gid");
+				
+				$newsetting = array(
+					"name" => "myfbconnect_fbavatar",
+					"title" => $db->escape_string($lang->myfbconnect_settings_fbavatar),
+					"description" => $db->escape_string($lang->myfbconnect_settings_fbavatar_desc),
+					"optionscode" => "yesno",
+					"value" => "1",
+					"disporder" => "12",
+					"gid" => $gid
+				);
+				// add the new setting
+				$db->insert_query("settings", $newsetting);
+				
+				// rebuild settings
+				rebuild_settings();
+				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
+				find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');				
 			}
 			// update version n° and return a success message
 			$shadePlugins[$info['name']] = array(
