@@ -80,7 +80,7 @@ if ($mybb->input['action'] == "do_fblogin") {
 	}
 	// user found, but permissions denied
 	catch (FacebookApiException $e) {
-		error($lang->sprintf($lang->myfbconnect_error_report, print_r($e)));
+		error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 	}
 }
 
@@ -103,7 +103,7 @@ if ($mybb->input['action'] == "fbregister") {
 		}
 		// user found, but permissions denied
 		catch (FacebookApiException $e) {
-			error($lang->sprintf($lang->myfbconnect_error_report, print_r($e)));
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 		}
 	}
 	
