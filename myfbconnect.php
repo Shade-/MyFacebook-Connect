@@ -20,9 +20,16 @@ require_once "./global.php";
 
 $lang->load('myfbconnect');
 
+// master switch is set to off
 if (!$mybb->settings['myfbconnect_enabled']) {
 	header("Location: index.php");
 	exit;
+}
+
+// registrations are disabled
+if($mybb->settings['disableregs'] == 1) {
+	if(!$lang->registrations_disabled) $lang->load("member");
+	error($lang->registrations_disabled);
 }
 
 /* API LOAD */
@@ -30,7 +37,7 @@ try {
 	include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
 }
 catch (Exception $e) {
-	error_log($e);
+	error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 }
 
 $appID = $mybb->settings['myfbconnect_appid'];

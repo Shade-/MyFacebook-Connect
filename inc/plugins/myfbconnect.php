@@ -330,7 +330,7 @@ function myfbconnect_usercp()
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
 		}
 		catch (Exception $e) {
-			error_log($e);
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 		}
 		
 		$appID = $mybb->settings['myfbconnect_appid'];
@@ -772,7 +772,7 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
 		}
 		catch (Exception $e) {
-			error_log($e);
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 		}
 		
 		// Create our application instance
@@ -926,7 +926,7 @@ function myfbconnect_login($url)
 		include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
 	}
 	catch (Exception $e) {
-		error_log($e);
+		error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 	}
 	
 	// Create our application instance
