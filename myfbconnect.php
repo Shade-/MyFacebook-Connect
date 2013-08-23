@@ -19,6 +19,7 @@ define('ALLOWABLE_PAGE', 'fblogin,fbregister,do_fblogin');
 require_once "./global.php";
 
 $lang->load('myfbconnect');
+$lang->load("member");
 
 // master switch is set to off
 if (!$mybb->settings['myfbconnect_enabled']) {
@@ -89,6 +90,10 @@ if ($mybb->input['action'] == "do_fblogin") {
 	catch (FacebookApiException $e) {
 		error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 	}
+		if($mybb->settings['disableregs'] == 1)
+	{
+		error($lang->registrations_disabled);
+     }
 }
 
 // don't stop the magic, again!
