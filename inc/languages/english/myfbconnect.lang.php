@@ -11,14 +11,14 @@ $l['myfbconnect_redirect_title'] = "Welcome, {1}!";
 // errors
 $l['myfbconnect_error_noconfigfound'] = "You haven't configured MyFacebook Connect plugin yet: either your Facebook Application ID or your Facebook Application Secret are missing. If you are an administrator, please read the instructions provided in the documentation.";
 $l['myfbconnect_error_noauth'] = "You didn't let us login with your Facebook account. Please authorize our application from your Facebook Application manager if you would like to login into our Forum.";
-$l['myfbconnect_error_report'] = "An unknown error occured. The output of the error is:
+$l['myfbconnect_error_report'] = "An unknown error occurred. The output of the error is:
 <pre>
 {1}
 </pre>
 Please report this error to an administrator and try again.";
 $l['myfbconnect_error_alreadyloggedin'] = "You are already logged into the board.";
 $l['myfbconnect_error_verifiedonly'] = "Only verified Facebook accounts are allowed to register or login. Please verify your Facebook account before tempting to register or login here again.";
-$l['myfbconnect_error_unknown'] = "An unknown error occured.";
+$l['myfbconnect_error_unknown'] = "An unknown error occurred.";
 
 // usercp
 $l['myfbconnect_settings_title'] = "Facebook integration";

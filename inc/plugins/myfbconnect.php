@@ -654,7 +654,9 @@ function myfbconnect_register($user = array())
 	require_once MYBB_ROOT . "inc/datahandlers/user.php";
 	$userhandler = new UserDataHandler("insert");
 	
-	$password = random_str(8);
+	$plength = !empty($mybb->settings['minpasswordlength']) ? $mybb->settings['minpasswordlength'] : 8;
+	
+	$password = random_str($plength);
 	
 	$newUser = array(
 		"username" => $user['name'],
