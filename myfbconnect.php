@@ -165,7 +165,7 @@ if ($mybb->input['action'] == "fbregister") {
 			my_setcookie("sid", $session->sid, -1, true);
 			// redirect the user to where he came from
 			if ($mybb->input['redUrl'] AND strpos($mybb->input['redUrl'], "action=fblogin") === false AND strpos($mybb->input['redUrl'], "action=fbregister") === false) {
-				$redirect_url = htmlentities($mybb->input['redUrl']);
+				$redirect_url =  htmlspecialchars_uni($mybb->input['redUrl']);
 			} else {
 				$redirect_url = "index.php";
 			}
@@ -212,10 +212,10 @@ if ($mybb->input['action'] == "fbregister") {
 		
 	// if registration failed, we certainly have some custom inputs, so we have to display them instead of the Facebook ones
 	if(!empty($mybb->input['username'])) {
-		$userdata['name'] = $mybb->input['username'];
+		$userdata['name'] =  htmlspecialchars_uni($mybb->input['username']); //Preventing XSS
 	}
 	if(!empty($mybb->input['email'])) {
-		$userdata['email'] = $mybb->input['email'];
+		$userdata['email'] =  htmlspecialchars_uni($mybb->input['email']); //Preventing XSS
 	}
 	
 	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$userdata['name']}\" />";
