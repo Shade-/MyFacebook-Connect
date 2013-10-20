@@ -1,7 +1,7 @@
 MyFacebook Connect
 ===============================
 
-> **Current version** 1.1  
+> **Current version** 1.1.1  
 > **Dependencies** [PluginLibrary][1], cURL installed and running on your server  
 > **Author** Shade  
 
@@ -10,7 +10,7 @@ General
 
 MyFacebook Connect is meant to be the missing bridge between Facebook and MyBB. It lets your users login with their Facebook account, registering if they don't have an account on your board, and linking their Facebook account to their account on your board if they have one already.
 
-The plugin adds 19 settings into your Admin Control Panel which let you specify the Facebook App ID, Facebook App Secret, the post-registration usergroup the user will be inserted when registering through Facebook, whether to use fast one-click registrations and other minor settings.
+The plugin adds 21 settings into your Admin Control Panel which let you specify the Facebook App ID, Facebook App Secret, the post-registration usergroup the user will be inserted when registering through Facebook, whether to use fast one-click registrations and other minor settings.
 
 MyFacebook Connect currently comes with the following feature list:
 
@@ -31,11 +31,6 @@ MyFacebook Connect currently comes with the following feature list:
 * Redirects logged in/registered users to the same page they came from
 * **It works**
 * **It's free**
-
-Known issues
-------------
-
-There aren't any known major issues at the moment.
 
 Documentation
 -------------

@@ -689,7 +689,7 @@ function myfbconnect_register($user = array())
 		"displaygroup" => $mybb->settings['myfbconnect_usergroup'],
 		"regip" => $session->ipaddress,
 		"longregip" => my_ip2long($session->ipaddress),
-		"hideemail" => 1,
+		"options" => array("hideemail" => 1),
 	);
 		
 	/* Registration might fail for custom profile fields required at registration... workaround = IN_ADMINCP defined.
