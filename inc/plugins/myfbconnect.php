@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.1
+ * @version 1.1.1
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.idevicelab.net/forum',
-		'version' => '1.1',
+		'version' => '1.1.1',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -282,7 +282,7 @@ function myfbconnect_global()
 	}
 	
 	if (THIS_SCRIPT == "myfbconnect.php") {
-		$templatelist .= 'myfbconnect_register';
+		$templatelist .= 'myfbconnect_register,myfbconnect_register_settings_setting';
 	}
 	
 	if (THIS_SCRIPT == "usercp.php") {
@@ -397,7 +397,7 @@ function myfbconnect_usercp()
 			
 			// unlinking his FB account... what a pity! :(
 			if ($mybb->input['unlink']) {
-				myfbconnect_unlink($mybb->user['uid']);
+				myfbconnect_unlink();
 				// inline success support
 				if (function_exists(inline_success)) {
 					$inlinesuccess = inline_success($lang->myfbconnect_success_accunlinked);
@@ -458,14 +458,14 @@ function myfbconnect_usercp()
 					$settingsToSelect[] = $setting;
 				}
 			}
+			$userSettings = array();
 			
 			// join pieces into a string
 			if (!empty($settingsToSelect)) {
 				$settingsToSelect = implode(",", $settingsToSelect);
+				$query = $db->simple_select("users", $settingsToSelect, "uid = " . $mybb->user['uid']);
+				$userSettings = $db->fetch_array($query);
 			}
-			
-			$query = $db->simple_select("users", $settingsToSelect, "uid = " . $mybb->user['uid']);
-			$userSettings = $db->fetch_array($query);
 			$settings = "";
 			foreach ($userSettings as $setting => $value) {
 				// variable variables. Yay!
@@ -526,6 +526,17 @@ function myfbconnect_run($userdata, $justlink = false)
 		}
 		// this user is already registered with us, just link its account with his facebook and log him in
 		if ($registered OR $justlink) {
+			
+			// add the user to the facebook group, if any
+			if($mybb->settings['myfbconnect_usergroup']) {
+				$db->query("UPDATE ".TABLE_PREFIX."users
+					SET additionalgroups=CASE
+					WHEN additionalgroups='' THEN '".$mybb->settings['myfbconnect_usergroup']."'
+					ELSE CONCAT(additionalgroups, ',".$mybb->settings['myfbconnect_usergroup']."')
+					END
+					WHERE uid = ".$mybb->user['uid']."");
+			}
+			
 			if ($justlink) {
 				$db->update_query("users", array(
 					"myfb_uid" => $user['id']
@@ -624,18 +635,28 @@ function myfbconnect_run($userdata, $justlink = false)
  * @return boolean True if successful, false if unsuccessful.
  **/
 
-function myfbconnect_unlink($uid)
+function myfbconnect_unlink()
 {
 	
-	global $db;
-	
-	$uid = (int) $uid;
+	global $db, $mybb;
 	
 	$reset = array(
 		"myfb_uid" => 0
 	);
 	
-	$db->update_query("users", $reset, "uid = {$uid}");
+	// unlink the account
+	$db->update_query("users", $reset, "uid = {$mybb->user['uid']}");
+	// remove the additional group
+	if(strpos($mybb->user['additionalgroups'], $mybb->settings['myfbconnect_usergroup']) !== false) {
+		$coma = "";
+		if(count(explode(",", $mybb->settings['myfbconnect_usergroup'])) > 1) {
+			$coma = ",";
+		}
+		$reset = array(
+			"additionalgroups" => "REPLACE(additionalgroups, '{$coma}{$mybb->settings['myfbconnect_usergroup']}', '')"
+		);
+		$db->update_query("users", $reset, "uid = {$mybb->user['uid']}", "", true);
+	}
 	
 }
 
