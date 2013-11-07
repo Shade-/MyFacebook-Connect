@@ -25,7 +25,7 @@ function myfbconnect_info()
 		'description' => 'Integrates MyBB with Facebook, featuring login and registration.',
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
-		'authorsite' => 'http://www.idevicelab.net/forum',
+		'authorsite' => '',
 		'version' => '1.1.1',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
@@ -534,7 +534,7 @@ function myfbconnect_run($userdata, $justlink = false)
 				if(!in_array($toadd, $groups)) {
 					$groups[] = $toadd;
 					$param = array(
-						"additionalgroups" => implode(",", $groups)
+						"additionalgroups" => implode(",", array_filter($groups))
 					);
 					$db->update_query("users", $param, "uid = {$mybb->user['uid']}");
 				}
@@ -656,8 +656,7 @@ function myfbconnect_unlink()
 	if(in_array($todelete, $groups)) {
 		$groups = array_flip($groups);
 		unset($groups[$todelete]);
-		$groups = array_flip($groups);
-		myfbconnect_debug($groups);
+		$groups = array_filter(array_flip($groups));
 		$reset = array(
 			"additionalgroups" => implode(",", $groups)
 		);
