@@ -529,12 +529,15 @@ function myfbconnect_run($userdata, $justlink = false)
 			
 			// add the user to the facebook group, if any
 			if($mybb->settings['myfbconnect_usergroup']) {
-				$db->query("UPDATE ".TABLE_PREFIX."users
-					SET additionalgroups=CASE
-					WHEN additionalgroups='' THEN '".$mybb->settings['myfbconnect_usergroup']."'
-					ELSE CONCAT(additionalgroups, ',".$mybb->settings['myfbconnect_usergroup']."')
-					END
-					WHERE uid = ".$mybb->user['uid']."");
+				$groups = explode(",", $mybb->user['additionalgroups']);
+				$toadd = (int) $mybb->settings['myfbconnect_usergroup'];
+				if(!in_array($toadd, $groups)) {
+					$groups[] = $toadd;
+					$param = array(
+						"additionalgroups" => implode(",", $groups)
+					);
+					$db->update_query("users", $param, "uid = {$mybb->user['uid']}");
+				}
 			}
 			
 			if ($justlink) {
@@ -647,15 +650,18 @@ function myfbconnect_unlink()
 	// unlink the account
 	$db->update_query("users", $reset, "uid = {$mybb->user['uid']}");
 	// remove the additional group
-	if(strpos($mybb->user['additionalgroups'], $mybb->settings['myfbconnect_usergroup']) !== false) {
-		$coma = "";
-		if(count(explode(",", $mybb->settings['myfbconnect_usergroup'])) > 1) {
-			$coma = ",";
-		}
+	$groups = explode(",", $mybb->user['additionalgroups']);
+	// we should not rely on the admin's input
+	$todelete = (int) $mybb->settings['myfbconnect_usergroup'];
+	if(in_array($todelete, $groups)) {
+		$groups = array_flip($groups);
+		unset($groups[$todelete]);
+		$groups = array_flip($groups);
+		myfbconnect_debug($groups);
 		$reset = array(
-			"additionalgroups" => "REPLACE(additionalgroups, '{$coma}{$mybb->settings['myfbconnect_usergroup']}', '')"
+			"additionalgroups" => implode(",", $groups)
 		);
-		$db->update_query("users", $reset, "uid = {$mybb->user['uid']}", "", true);
+		$db->update_query("users", $reset, "uid = {$mybb->user['uid']}");
 	}
 	
 }
