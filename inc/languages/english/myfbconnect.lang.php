@@ -18,6 +18,7 @@ $l['myfbconnect_error_report'] = "An unknown error occurred. The output of the e
 Please report this error to an administrator and try again.";
 $l['myfbconnect_error_alreadyloggedin'] = "You are already logged into the board.";
 $l['myfbconnect_error_verifiedonly'] = "Only verified Facebook accounts are allowed to register or login. Please verify your Facebook account before tempting to register or login here again.";
+$l['myfbconnect_error_noidprovided'] = "An unknown error occurred while fetching your data from Facebook. Either the plugin was not configured properly or this server doesn't support server-to-server connections. Please report this error to an administrator.";
 $l['myfbconnect_error_unknown'] = "An unknown error occurred.";
 
 // usercp

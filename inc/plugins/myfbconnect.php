@@ -511,6 +511,10 @@ function myfbconnect_run($userdata, $justlink = false)
 		}
 	}
 	
+	if(!$user['id']) {
+		error($lang->myfbconnect_error_noidprovided);
+	}
+	
 	// See if this user is already present in our database
 	if (!$justlink) {
 		$query = $db->simple_select("users", "*", "myfb_uid = {$user['id']}");
