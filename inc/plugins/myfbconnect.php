@@ -309,7 +309,7 @@ function myfbconnect_usercp_menu()
 function myfbconnect_usercp()
 {
 	
-	global $mybb, $lang;
+	global $mybb, $lang, $inlinesuccess;
 
 	$settingsToCheck = array(
 		"fbavatar",
@@ -363,15 +363,7 @@ function myfbconnect_usercp()
 			$userdata = $facebook->api("/me?fields=id,verified");
 			// true means only link
 			myfbconnect_run($userdata, true);
-			// inline success support
-			if (function_exists(inline_success)) {
-				$inlinesuccess = inline_success($lang->myfbconnect_success_linked);
-				$mybb->input['action'] = "myfbconnect";
-				// make sure we don't update options when redirecting with inline success (with NULL values)
-				unset($mybb->input['code']);
-			} else {
-				redirect("usercp.php?action=myfbconnect", $lang->myfbconnect_success_linked);
-			}
+			redirect("usercp.php?action=myfbconnect", $lang->myfbconnect_success_linked);
 		} else {
 			error($lang->myfbconnect_error_noauth);
 		}
@@ -398,12 +390,7 @@ function myfbconnect_usercp()
 			// unlinking his FB account... what a pity! :(
 			if ($mybb->input['unlink']) {
 				myfbconnect_unlink();
-				// inline success support
-				if (function_exists(inline_success)) {
-					$inlinesuccess = inline_success($lang->myfbconnect_success_accunlinked);
-				} else {
-					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_accunlinked, $lang->myfbconnect_success_accunlinked_title);
-				}
+				redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_accunlinked, $lang->myfbconnect_success_accunlinked_title);
 			} else {						
 				$settings = array();
 				
@@ -433,12 +420,7 @@ function myfbconnect_usercp()
 					
 					// we don't need fb_isloggingin anymore
 					unset($_SESSION['fb_isloggingin']);
-					// inline success support
-					if (function_exists(inline_success)) {
-						$inlinesuccess = inline_success($lang->myfbconnect_success_settingsupdated);
-					} else {
-						redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
-					}
+					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
 				}
 			}
 		}
