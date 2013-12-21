@@ -7,7 +7,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.1.1
+ * @version 1.2
  */
 
 if (!defined('IN_MYBB')) {
@@ -26,7 +26,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '1.1.1',
+		'version' => '1.2',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -168,7 +168,7 @@ function myfbconnect_install()
 			'optionscode' => 'text',
 			'value' => ''
 		),
-		// sex - does nothing atm!
+		// sex
 		'fbsex' => array(
 			'title' => $lang->myfbconnect_settings_fbsex,
 			'description' => $lang->myfbconnect_settings_fbsex_desc,
@@ -767,6 +767,10 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	
 	global $mybb, $db, $session, $lang, $plugins;
 	
+	if(!$lang->myfbconnect) {
+		$lang->load("myfbconnect");
+	}
+	
 	$userData = array();
 	$userfieldsData = array();
 	
@@ -876,10 +880,9 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	if ((($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) AND $mybb->settings['myfbconnect_fbsex']) {
 		if ($db->field_exists($sexid, "userfields")) {
 			if ($fbdata['gender'] == "male") {
-				// italian fillings... 5h17! workaround needed!
-				$userfieldsData[$sexid] = "Uomo";
+				$userfieldsData[$sexid] = $lang->myfbconnect_male;
 			} elseif ($fbdata['gender'] == "female") {
-				$userfieldsData[$sexid] = "Donna";
+				$userfieldsData[$sexid] = $lang->myfbconnect_female;
 			}
 		}
 	}
@@ -1077,21 +1080,6 @@ function myfbconnect_build_wol_location(&$plugin_array)
             break;
     }
     return $plugin_array;
-} 
-
-/**
- * Debugs any type of data.
- * 
- * @param mixed The data to debug.
- * @return mixed The debugged data.
- **/
-
-function myfbconnect_debug($data)
-{
-	echo "<pre>";
-	echo var_dump($data);
-	echo "</pre>";
-	exit;
 }
 
 /********************************************************************************************************
@@ -1177,6 +1165,17 @@ function myfbconnect_upgrader()
 				rebuild_settings();
 				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
 				find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');				
+			}			
+			// to 1.2
+			if (version_compare($oldversion, "1.2", "<")) {				
+				$updated_setting = array(
+					"description" => $db->escape_string($lang->myfbconnect_settings_fbsex_desc),
+				);
+				// update the setting
+				$db->update_query("settings", $newsetting, "name = 'myfbconnect_fbsex'");
+				
+				// rebuild settings
+				rebuild_settings();			
 			}
 			// update version n° and return a success message
 			$shadePlugins[$info['name']] = array(

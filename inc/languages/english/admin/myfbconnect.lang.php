@@ -46,7 +46,7 @@ $l['myfbconnect_settings_fbdetails_desc'] = "If you would like to import first a
 $l['myfbconnect_settings_fbdetailsfield'] = "First and last name Custom Profile Field ID";
 $l['myfbconnect_settings_fbdetailsfield_desc'] = "Insert the Custom Profile Field ID which corresponds to the First and last name field. Make sure it's the right ID while you fill it! Default void (MyBB doesn't use it)";
 $l['myfbconnect_settings_fbsex'] = "Sync sex";
-$l['myfbconnect_settings_fbsex_desc'] = "<b>This option DOESN'T WORK PROPERLY at the moment.</b> Unfortunately, sex is one of the biggest problems I have to face off since it's a custom profile field with values which vary from board to board. I'll work on it. The synchronization works (but it causes fields to be italian, so if you are used to PHP you can modify its function in inc/plugins/myfbconnect.php). Just leave it disabled if you don't want to use an useless button.";
+$l['myfbconnect_settings_fbsex_desc'] = "If you would like to import sex from Facebook (and let users decide to sync it) enable this option.";
 $l['myfbconnect_settings_fbsexfield'] = "Sex Custom Profile Field ID";
 $l['myfbconnect_settings_fbsexfield_desc'] = "Insert the Custom Profile Field ID which corresponds to the Sex field. Make sure it's the right ID while you fill it! Default to 3 (MyBB's default)";
 

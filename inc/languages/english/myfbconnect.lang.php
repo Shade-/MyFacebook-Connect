@@ -52,3 +52,7 @@ $l['myfbconnect_success_accunlinked_title'] = "Account unlinked";
 // who's online
 $l['myfbconnect_viewing_loggingin'] = "<a href=\"myfbconnect.php?action=fblogin\">Logging in with Facebook</a>";
 $l['myfbconnect_viewing_registering'] = "<a href=\"myfbconnect.php?action=fbregister\">Registering with Facebook</a>";
+
+// others
+$l['myfbconnect_male'] = "Male";
+$l['myfbconnect_female'] = "Female";
