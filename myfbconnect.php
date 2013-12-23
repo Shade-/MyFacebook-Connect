@@ -9,7 +9,7 @@
  * @page Main
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 1.1.1
+ * @version 1.2
  */
 
 define("IN_MYBB", 1);
@@ -28,7 +28,9 @@ if (!$mybb->settings['myfbconnect_enabled']) {
 
 // registrations are disabled
 if($mybb->settings['disableregs'] == 1) {
-	if(!$lang->registrations_disabled) $lang->load("member");
+	if(!$lang->registrations_disabled) {
+		$lang->load("member");
+	}
 	error($lang->registrations_disabled);
 }
 
@@ -131,7 +133,6 @@ if ($mybb->input['action'] == "fbregister") {
 		);
 		
 		foreach ($settingsToCheck as $setting) {
-			// variable variables. Yay!
 			if ($mybb->input[$setting] == 1) {
 				$settingsToAdd[$setting] = 1;
 			} else {
@@ -143,14 +144,15 @@ if ($mybb->input['action'] == "fbregister") {
 		$user_info = myfbconnect_register($newuser);
 		
 		// insert options and extra data
-		if ($db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user_info['uid']) AND !($user_info['error'])) {
+		if (!$user_info['error']) {
+		
+			$db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user_info['uid']);
 		
 			// compatibility with third party plugins which affects registration (MyAlerts for example)
 			$plugins->run_hooks("member_do_register_end");
 			
-			// update on-the-fly that array of data dude!
+			// update on-the-fly that array of data
 			$newUser = array_merge($user_info, $settingsToAdd);
-			// oh yeah, let's sync!
 			myfbconnect_sync($newUser);
 			
 			// login the user normally, and we have finished.	
@@ -171,12 +173,8 @@ if ($mybb->input['action'] == "fbregister") {
 			}
 			redirect($redirect_url, $lang->myfbconnect_redirect_registered, $lang->sprintf($lang->myfbconnect_redirect_title, $user_info['username']));
 		} else {
-			$errors = $user_info['data'];
+			$errors = inline_error($user_info['data']);
 		}
-	}
-	
-	if ($errors) {
-		$errors = inline_error($errors);
 	}
 	
 	$options = "";
@@ -212,10 +210,10 @@ if ($mybb->input['action'] == "fbregister") {
 		
 	// if registration failed, we certainly have some custom inputs, so we have to display them instead of the Facebook ones
 	if(!empty($mybb->input['username'])) {
-		$userdata['name'] =  htmlspecialchars_uni($mybb->input['username']); //Preventing XSS
+		$userdata['name'] = htmlspecialchars_uni($mybb->input['username']);
 	}
 	if(!empty($mybb->input['email'])) {
-		$userdata['email'] =  htmlspecialchars_uni($mybb->input['email']); //Preventing XSS
+		$userdata['email'] = htmlspecialchars_uni($mybb->input['email']);
 	}
 	
 	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$userdata['name']}\" />";

@@ -324,7 +324,7 @@ function myfbconnect_usercp()
 		$lang->load('myfbconnect');
 	}
 	
-	if ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") OR ($mybb->input['action'] == ("do_fblink" OR "myfbconnect") AND $mybb->request_method == 'post')) {
+	if (in_array($mybb->input['action'], array('do_fblink', 'myfbconnect'))) {
 		/* API LOAD */
 		try {
 			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
@@ -350,13 +350,13 @@ function myfbconnect_usercp()
 	}
 	
 	// linking accounts
-	if ($mybb->input['action'] == "fblink") {
+	if ($mybb->input['action'] == 'fblink') {
 		$loginUrl = "/usercp.php?action=do_fblink";
 		myfbconnect_login($loginUrl);
 	}
 	
 	// truly link accounts
-	if ($mybb->input['action'] == "do_fblink") {
+	if ($mybb->input['action'] == 'do_fblink') {
 		// get the user
 		$user = $facebook->getUser();
 		if ($user) {
@@ -376,18 +376,14 @@ function myfbconnect_usercp()
 		add_breadcrumb($lang->nav_usercp, 'usercp.php');
 		add_breadcrumb($lang->myfbconnect_page_title, 'usercp.php?action=myfbconnect');
 		
-		// 2 situations provided: the user is logged in with Facebook, two user isn't logged in with Facebook but it's loggin in.
+		// 2 situations provided: the user is logged in with Facebook, or the user isn't logged in with Facebook but he's logging in
 		if ($mybb->request_method == 'post' OR $_SESSION['fb_isloggingin']) {
-			
-			if (!session_id()) {
-				session_start();
-			}
 			
 			if ($mybb->request_method == 'post') {
 				verify_post_check($mybb->input['my_post_key']);
 			}
 			
-			// unlinking his FB account... what a pity! :(
+			// unlinking his FB account...
 			if ($mybb->input['unlink']) {
 				myfbconnect_unlink();
 				redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_accunlinked, $lang->myfbconnect_success_accunlinked_title);
@@ -407,18 +403,17 @@ function myfbconnect_usercp()
 				
 				if (!$facebook->getUser()) {
 					$loginUrl = "/usercp.php?action=myfbconnect" . $loginUrlExtra;
-					// used for recognizing an active settings update process later on
+					// store a token in the session just to make sure we update this user status in the next call
 					$_SESSION['fb_isloggingin'] = true;
 					myfbconnect_login($loginUrl);
 				}
 				
 				if ($db->update_query('users', $settings, 'uid = ' . (int) $mybb->user['uid'])) {
-					// update on-the-fly that array of data dude!
+					// update on-the-fly that array of data
 					$newUser = array_merge($mybb->user, $settings);
-					// oh yeah, let's sync!
 					myfbconnect_sync($newUser);
 					
-					// we don't need fb_isloggingin anymore
+					// we don't need our token anymore
 					unset($_SESSION['fb_isloggingin']);
 					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
 				}
@@ -747,9 +742,10 @@ function myfbconnect_register($user = array())
 		// return our newly registered user data
 		return $user_info;
 	} else {
-		$errors['error'] = true;
-		$errors['data'] = $userhandler->get_friendly_errors();
-		return $errors;
+		return array(
+			'error' => true,
+			'data' => $userhandler->get_friendly_errors()
+		);
 	}
 }
 
@@ -765,7 +761,7 @@ function myfbconnect_register($user = array())
 function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 {
 	
-	global $mybb, $db, $session, $lang, $plugins;
+	global $mybb, $db, $session, $lang, $plugins, $facebook;
 	
 	if(!$lang->myfbconnect) {
 		$lang->load("myfbconnect");
@@ -779,25 +775,27 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 	$bioid = "fid" . $mybb->settings['myfbconnect_fbbiofield'];
 	$sexid = "fid" . $mybb->settings['myfbconnect_fbsexfield'];
 	
-	// ouch! empty facebook data, we need to help this poor guy!
+	// no data available? let's try to get some
 	if (empty($fbdata)) {
 		
-		$appID = $mybb->settings['myfbconnect_appid'];
-		$appSecret = $mybb->settings['myfbconnect_appsecret'];
-		
-		// include our API
-		try {
-			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+		if(!$facebook) {
+			$appID = $mybb->settings['myfbconnect_appid'];
+			$appSecret = $mybb->settings['myfbconnect_appsecret'];
+			
+			// include our API
+			try {
+				include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+			}
+			catch (Exception $e) {
+				error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+			}
+			
+			// Create our application instance
+			$facebook = new Facebook(array(
+				'appId' => $appID,
+				'secret' => $appSecret
+			));
 		}
-		catch (Exception $e) {
-			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
-		}
-		
-		// Create our application instance
-		$facebook = new Facebook(array(
-			'appId' => $appID,
-			'secret' => $appSecret
-		));
 		
 		$fbuser = $facebook->getUser();
 		if (!$fbuser) {
@@ -933,28 +931,30 @@ function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
 
 function myfbconnect_login($url)
 {
-	global $mybb, $lang;
+	global $mybb, $lang, $facebook;
 	
-	$appID = $mybb->settings['myfbconnect_appid'];
-	$appSecret = $mybb->settings['myfbconnect_appsecret'];
-	
-	// include our API
-	try {
-		include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
-	}
-	catch (Exception $e) {
-		error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
-	}
-	
-	// Create our application instance
-	$facebook = new Facebook(array(
-		'appId' => $appID,
-		'secret' => $appSecret
-	));
-	
-	// empty configuration
-	if (empty($appID) OR empty($appSecret)) {
-		error($lang->myfbconnect_error_noconfigfound);
+	if(!$facebook) {	
+		$appID = $mybb->settings['myfbconnect_appid'];
+		$appSecret = $mybb->settings['myfbconnect_appsecret'];
+		
+		// include our API
+		try {
+			include_once MYBB_ROOT . "myfbconnect/src/facebook.php";
+		}
+		catch (Exception $e) {
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+		}
+		
+		// Create our application instance
+		$facebook = new Facebook(array(
+			'appId' => $appID,
+			'secret' => $appSecret
+		));
+		
+		// empty configuration
+		if (empty($appID) OR empty($appSecret)) {
+			error($lang->myfbconnect_error_noconfigfound);
+		}
 	}
 	
 	if ($mybb->settings['myfbconnect_requestpublishingperms']) {
@@ -973,7 +973,7 @@ function myfbconnect_login($url)
 }
 
 /**
- * Displays peekers in settings. Technique ripped from MySupport, please don't blame on me :(
+ * Displays peekers in settings
  * 
  * @return boolean True if successful, false either.
  **/
@@ -1167,7 +1167,7 @@ function myfbconnect_upgrader()
 				find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');				
 			}			
 			// to 1.2
-			if (version_compare($oldversion, "1.2", "<")) {				
+			if (version_compare($oldversion, "1.2", "<")) {
 				$updated_setting = array(
 					"description" => $db->escape_string($lang->myfbconnect_settings_fbsex_desc),
 				);
