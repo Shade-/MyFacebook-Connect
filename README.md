@@ -1,12 +1,14 @@
-MyFacebook Connect
-===============================
+## MyFacebook Connect
 
-> **Current version** 1.1.1  
+> **Unstable version** 2.0  
 > **Dependencies** [PluginLibrary][1], cURL installed and running on your server  
 > **Author** Shade  
 
-General
--------
+### Unstable code
+
+This branch was created in order to collect all the unstable code prior to release every update. Please use carefully and at your own risk. Untested queries might harm your Forum structure. Use the code in 'master' branch instead.
+
+### General
 
 MyFacebook Connect is meant to be the missing bridge between Facebook and MyBB. It lets your users login with their Facebook account, registering if they don't have an account on your board, and linking their Facebook account to their account on your board if they have one already.
 
@@ -32,13 +34,11 @@ MyFacebook Connect currently comes with the following feature list:
 * **It works**
 * **It's free**
 
-Documentation
--------------
+### Documentation
 
 Please refer to the official documentation [here][2].
 
-Future updates
--------------
+### Future updates
 
 Would you like to see a feature developed for MyFacebook Connect? No problem, just open a new Issue here on GitHub and I'll do my best to accomplish your request!
 
