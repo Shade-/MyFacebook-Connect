@@ -239,7 +239,7 @@ function myfbconnect_uninstall()
 	
 	$PL->settings_delete('myfbconnect');
 	
-	// Delete our Facebook columns
+	// delete our Facebook columns
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbavatar`, DROP `fbsex`, DROP `fbdetails`, DROP `fbbio`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
 	
 	$info         = myfbconnect_info();
@@ -313,12 +313,9 @@ function myfbconnect_usercp()
 	global $mybb, $lang, $inlinesuccess;
 	
 	// Load API in certain areas
-	if (in_array($mybb->input['action'], array(
-		'fblink',
-		'do_fblink'
-	)) or ($mybb->input['action'] == 'myfbconnect' and $mybb->request_method == 'post')) {
+	if (in_array($mybb->input['action'], array('fblink','do_fblink')) or $_SESSION['fblogin'] or ($mybb->input['action'] == 'myfbconnect' and $mybb->request_method == 'post')) {
 		
-		require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/facebook.class.php";
+		require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_facebook.php";
 		$FacebookConnect = new MyFacebook();
 		
 	}
@@ -406,7 +403,7 @@ function myfbconnect_usercp()
 					// Store a token in the session, we will check for it in the next call
 					$_SESSION['fblogin'] = 1;
 					
-					$FacebookConnect->set_fallback("/usercp.php?action=myfbconnect" . $loginUrlExtra);
+					$FacebookConnect->set_fallback("usercp.php?action=myfbconnect" . $loginUrlExtra);
 					$FacebookConnect->authenticate();
 					
 					return;
@@ -417,7 +414,7 @@ function myfbconnect_usercp()
 					unset($_SESSION['fblogin']);
 					
 					$newUser = array_merge($mybb->user, $settings);
-					myfbconnect_sync($newUser);
+					$FacebookConnect->sync($newUser);
 					
 					redirect('usercp.php?action=myfbconnect', $lang->myfbconnect_success_settingsupdated, $lang->myfbconnect_success_settingsupdated_title);
 					
@@ -480,161 +477,8 @@ function myfbconnect_usercp()
 }
 
 /**
- * Syncronizes any Facebook account with any MyBB account, importing all the infos.
- * 
- * @param array The existing user data. UID is required.
- * @param array The Facebook user data to sync.
- * @param int Whether to bypass any existing user settings or not. Disabled by default.
- * @return boolean True if successful, false if unsuccessful.
- **/
-
-function myfbconnect_sync($user, $fbdata = array(), $bypass = false)
-{
-	
-	global $mybb, $db, $session, $lang, $plugins;
-	
-	if (!$lang->myfbconnect) {
-		$lang->load("myfbconnect");
-	}
-	
-	$userData       = array();
-	$userfieldsData = array();
-	
-	$detailsid  = "fid" . $mybb->settings['myfbconnect_fbdetailsfield'];
-	$locationid = "fid" . $mybb->settings['myfbconnect_fblocationfield'];
-	$bioid      = "fid" . $mybb->settings['myfbconnect_fbbiofield'];
-	$sexid      = "fid" . $mybb->settings['myfbconnect_fbsexfield'];
-	
-	// no data available? let's try to get some
-	if (empty($fbdata)) {
-		require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/facebook.class.php";
-		$FacebookConnect = new MyFacebook();
-		$fbdata          = $FacebookConnect->get_user();
-	}
-	
-	$query      = $db->simple_select("userfields", "*", "ufid = {$user['uid']}");
-	$userfields = $db->fetch_array($query);
-	if (empty($userfields)) {
-		$userfieldsData['ufid'] = $user['uid'];
-	}
-	
-	// facebook id, if empty we need to sync it
-	if (empty($user["myfb_uid"])) {
-		$userData["myfb_uid"] = $fbdata["id"];
-	}
-	
-	// begin our checkes comparing mybb with facebook stuff, syntax:
-	// (USER SETTINGS AND !empty(FACEBOOK VALUE)) OR $bypass (eventually ADMIN SETTINGS)
-	
-	// avatar
-	if ((($user['fbavatar'] AND !empty($fbdata['id'])) OR $bypass) AND $mybb->settings['myfbconnect_fbavatar']) {
-		
-		list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->settings['maxavatardims']));
-		
-		$userData["avatar"]     = $db->escape_string("http://graph.facebook.com/{$fbdata['id']}/picture?width={$maxwidth}&height={$maxheight}");
-		$userData["avatartype"] = "remote";
-		
-		// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
-		$file     = fetch_remote_file($userData["avatar"]);
-		$tmp_name = $mybb->settings['avataruploadpath'] . "/remote_" . md5(random_str());
-		$fp       = @fopen($tmp_name, "wb");
-		if ($fp) {
-			fwrite($fp, $file);
-			fclose($fp);
-			list($width, $height, $type) = @getimagesize($tmp_name);
-			@unlink($tmp_name);
-			if (!$type) {
-				$avatar_error = true;
-			}
-		}
-		
-		if (empty($avatar_error)) {
-			if ($width AND $height AND $mybb->settings['maxavatardims'] != "") {
-				if (($maxwidth AND $width > $maxwidth) OR ($maxheight AND $height > $maxheight)) {
-					$avatardims = $maxheight . "|" . $maxwidth;
-				}
-			}
-			if ($width > 0 AND $height > 0 AND !$avatardims) {
-				$avatardims = $width . "|" . $height;
-			}
-			$userData["avatardimensions"] = $avatardims;
-		} else {
-			$userData["avatardimensions"] = $maxheight . "|" . $maxwidth;
-		}
-	}
-	// birthday
-	if ((($user['fbbday'] AND !empty($fbdata['birthday'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbday']) {
-		$birthday             = explode("/", $fbdata['birthday']);
-		$birthday['0']        = ltrim($birthday['0'], '0');
-		$userData["birthday"] = $birthday['1'] . "-" . $birthday['0'] . "-" . $birthday['2'];
-	}
-	// cover, if Profile Picture plugin is installed
-	if ((($user['fbavatar'] AND !empty($fbdata['cover']['source'])) OR $bypass) AND $db->field_exists("profilepic", "users")) {
-		$cover                      = $fbdata['cover']['source'];
-		$userData["profilepic"]     = str_replace('/s720x720/', '/p851x315/', $cover);
-		$userData["profilepictype"] = "remote";
-		if ($mybb->usergroup['profilepicmaxdimensions']) {
-			list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->usergroup['profilepicmaxdimensions']));
-			$userData["profilepicdimensions"] = $maxwidth . "|" . $maxheight;
-		} else {
-			$userData["profilepicdimensions"] = "851|315";
-		}
-	}
-	
-	// sex
-	if ((($user['fbsex'] AND !empty($fbdata['gender'])) OR $bypass) AND $mybb->settings['myfbconnect_fbsex']) {
-		if ($db->field_exists($sexid, "userfields")) {
-			if ($fbdata['gender'] == "male") {
-				$userfieldsData[$sexid] = $lang->myfbconnect_male;
-			} elseif ($fbdata['gender'] == "female") {
-				$userfieldsData[$sexid] = $lang->myfbconnect_female;
-			}
-		}
-	}
-	// name and last name
-	if ((($user['fbdetails'] AND !empty($fbdata['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fbdetails']) {
-		if ($db->field_exists($detailsid, "userfields")) {
-			$userfieldsData[$detailsid] = $db->escape_string($fbdata['name']);
-		}
-	}
-	// bio
-	if ((($user['fbbio'] AND !empty($fbdata['bio'])) OR $bypass) AND $mybb->settings['myfbconnect_fbbio']) {
-		if ($db->field_exists($bioid, "userfields")) {
-			$userfieldsData[$bioid] = $db->escape_string(htmlspecialchars_decode(my_substr($fbdata['bio'], 0, 400, true)));
-		}
-	}
-	// location
-	if ((($user['fblocation'] AND !empty($fbdata['location']['name'])) OR $bypass) AND $mybb->settings['myfbconnect_fblocation']) {
-		if ($db->field_exists($locationid, "userfields")) {
-			$userfieldsData[$locationid] = $db->escape_string($fbdata['location']['name']);
-		}
-	}
-	
-	$plugins->run_hooks("myfbconnect_sync_end", $userData);
-	
-	// let's do it!
-	if (!empty($userData) AND !empty($user['uid'])) {
-		$db->update_query("users", $userData, "uid = {$user['uid']}");
-	}
-	// make sure we can do it
-	if (!empty($userfieldsData) AND !empty($user['uid'])) {
-		if (isset($userfieldsData['ufid'])) {
-			$db->insert_query("userfields", $userfieldsData);
-		} else {
-			$db->update_query("userfields", $userfieldsData, "ufid = {$user['uid']}");
-		}
-	}
-	
-	return true;
-	
-}
-
-/**
  * Displays peekers in settings
- * 
- * @return boolean True if successful, false either.
  **/
-
 function myfbconnect_settings_footer()
 {
 	global $mybb, $db;
@@ -662,10 +506,7 @@ function loadMyFBConnectPeekers()
 
 /**
  * Gets the gid of MyFacebook Connect settings group.
- * 
- * @return mixed The gid.
  **/
-
 function myfbconnect_settings_gid()
 {
 	global $db;
@@ -714,17 +555,17 @@ function myfbconnect_fetch_wol_activity(&$user_activity)
 
 function myfbconnect_build_wol_location(&$plugin_array)
 {
-	global $db, $lang, $mybb, $_SERVER;
+	global $lang;
 	
 	$lang->load('myfbconnect');
 	
 	// let's see what action we are watching
 	switch ($plugin_array['user_activity']['activity']) {
-		case "fblogin":
-		case "do_fblogin":
+		case "login":
+		case "do_login":
 			$plugin_array['location_name'] = $lang->myfbconnect_viewing_loggingin;
 			break;
-		case "fbregister":
+		case "register":
 			$plugin_array['location_name'] = $lang->myfbconnect_viewing_registering;
 			break;
 	}

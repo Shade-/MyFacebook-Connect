@@ -13,8 +13,10 @@ require_once "./global.php";
 $lang->load('myfbconnect');
 
 if (!$mybb->settings['myfbconnect_enabled']) {
+
 	header("Location: index.php");
 	exit;
+	
 }
 
 // Registrations are disabled
@@ -29,7 +31,7 @@ if ($mybb->settings['disableregs'] == 1) {
 }
 
 // Load API
-require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/facebook.class.php";
+require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_facebook.php";
 $FacebookConnect = new MyFacebook();
 
 // Begin the authenticating process
@@ -40,6 +42,7 @@ if ($mybb->input['action'] == 'login') {
 	}
 	
 	$FacebookConnect->authenticate();
+	
 }
 
 // Receive the incoming data from Facebook and evaluates the user
@@ -61,6 +64,7 @@ if ($mybb->input['action'] == 'do_login') {
 			$mybb->input['action'] = "fbregister";
 		}
 	}
+	
 }
 
 // Register page fallback
@@ -75,7 +79,7 @@ if ($mybb->input['action'] == 'register') {
 		$FacebookConnect->authenticate();
 	}
 	else {
-		$user = $FacebookConnect->get_user("id,name,email,cover,birthday,website,gender,bio,location,verified");
+		$user = $FacebookConnect->get_user();
 	}
 	
 	// came from our reg page
@@ -114,17 +118,20 @@ if ($mybb->input['action'] == 'register') {
 		
 			$db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user['uid']);
 			
-			// update on-the-fly that array of data
-			//$newUser = array_merge($user, $settingsToAdd);
-			//myfbconnect_sync($newUser);
+			// Sync
+			$newUser = array_merge($user, $settingsToAdd);
+			$FacebookConnect->sync($newUser);
 			
+			// Login
 			$FacebookConnect->login($user);
 			
+			// Redirect
 			$FacebookConnect->redirect($mybb->input['redUrl'], $lang->sprintf($lang->myfbconnect_redirect_title, $user['username']), $lang->myfbconnect_redirect_registered);
 		}
 		else {
 			$errors = inline_error($user['error']);
 		}
+		
 	}
 	
 	$options = '';
@@ -158,6 +165,7 @@ if ($mybb->input['action'] == 'register') {
 		$label = $lang->$tempKey;
 		$altbg = alt_trow();
 		eval("\$options .= \"" . $templates->get('myfbconnect_register_settings_setting') . "\";");
+		
 	}
 		
 	// If registration failed, we certainly have some custom inputs, so we have to display them instead of the Facebook ones
@@ -175,9 +183,12 @@ if ($mybb->input['action'] == 'register') {
 	// Output our page
 	eval("\$fbregister = \"" . $templates->get("myfbconnect_register") . "\";");
 	output_page($fbregister);
+	
 }
 
 if (!$mybb->input['action']) {
+
 	header("Location: index.php");
 	exit;
+	
 }

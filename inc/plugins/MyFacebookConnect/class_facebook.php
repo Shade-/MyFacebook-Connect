@@ -6,7 +6,7 @@
  * @package Main API class
  * @version 2.0
  */
- 
+
 class MyFacebook
 {
 	// The fallback URL where Facebook redirects users
@@ -55,7 +55,8 @@ class MyFacebook
 		// Create our application instance
 		$this->facebook = new Facebook(array(
 			'appId' => $mybb->settings['myfbconnect_appid'],
-			'secret' => $mybb->settings['myfbconnect_appsecret']
+			'secret' => $mybb->settings['myfbconnect_appsecret'],
+			'allowSignedRequest' => false
 		));
 		
 		return true;
@@ -120,8 +121,10 @@ class MyFacebook
 			$user = $this->facebook->api('/me?fields=' . $fields);
 		}
 		catch (FacebookApiException $e) {
-			// The user should have denied permissions. Still available with check_user() though.
-			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+			
+			// The user should have denied permissions. Still available with check_user() though. Reask for login.
+			$this->authenticate();
+			
 		}
 		
 		if ($user) {
@@ -146,6 +149,41 @@ class MyFacebook
 	}
 	
 	/**
+	 * Post something on an user's wall
+	 */
+	private function post_on_wall($message, $link = '')
+	{
+		global $mybb;
+		
+		if (!$message) {
+			return false;
+		}
+		
+		$options = array(
+			'message' => $message
+		);
+		
+		if ($link) {
+			$options['link'] = $link;
+		}
+		else {
+			$options['link'] = $mybb->settings['bburl'];
+		}
+		
+		try {
+			$this->facebook->api('/me/feed', 'POST', $options);
+		}
+		catch (FacebookApiException $e) {
+			
+			// The user should have denied posting permissions. Reask for them.
+			$this->authenticate();
+			
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Logins an user by adding a cookie into his browser and updating his session
 	 */
 	public function login($user = '')
@@ -161,7 +199,7 @@ class MyFacebook
 		}
 		
 		// Delete all the old sessions
-		$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' AND sid != '" . $session->sid . "'");
+		$db->delete_query("sessions", "ip='" . $db->escape_string($session->ipaddress) . "' and sid != '" . $session->sid . "'");
 		
 		// Create a new session
 		$db->update_query("sessions", array(
@@ -232,7 +270,7 @@ class MyFacebook
 				
 				// Make sure admins haven't done something bad
 				$fromid = (int) $mybb->settings['myfbconnect_passwordpm_fromid'];
-				if (!$mybb->settings['myfbconnect_passwordpm_fromid'] OR !user_exists($mybb->settings['myfbconnect_passwordpm_fromid'])) {
+				if (!$mybb->settings['myfbconnect_passwordpm_fromid'] or !user_exists($mybb->settings['myfbconnect_passwordpm_fromid'])) {
 					$fromid = 0;
 				}
 				
@@ -318,6 +356,9 @@ class MyFacebook
 			$this->join_usergroup($user, $mybb->settings['myfbconnect_usergroup']);
 		}
 		
+		// Post a message on his wall
+		$this->post_on_wall("This is a test from MyFacebook Connect");
+		
 		return true;
 	}
 	
@@ -380,46 +421,242 @@ class MyFacebook
 			"limit" => 1
 		));
 		$account = $db->fetch_array($query);
+		$db->free_result($query);
 		
 		$message = $lang->myfbconnect_redirect_loggedin;
 		
-		// Decide what to do
+		// Link
 		if ($user['email'] and $account['email'] == $user['email'] and !$account['myfb_uid']) {
-			
-			// Link + login
 			$this->link_user($account);
-			$this->login($account);
-			
 		}
-		else if ($account['myfb_uid']) {
-			
-			// Login
-			$this->login($account);
-			
-		}
+		// Register
 		else if (!$account) {
 			
-			// Register + login
 			if (!$mybb->settings['myfbconnect_fastregistration']) {
 				header("Location: myfbconnect.php?action=register");
 				return false;
 			}
+			
 			global $plugins;
 			$account = $this->register($user);
 			
 			if ($account['error']) {
 				return $account;
 			}
+			else {
 			
-			$this->login($account);
+				// Set some defaults
+				$toCheck = array('fbavatar', 'fbbday', 'fbsex', 'fbdetails', 'fbbio', 'fblocation');
+				foreach ($toCheck as $setting) {
+				
+					$tempKey = 'myfbconnect_' . $setting;
+					$new_settings[$setting] = $mybb->settings[$tempKey];
+					
+				}
+				
+				$account = array_merge($account, $new_settings);
+				
+			}
 			
 			$message = $lang->myfbconnect_redirect_registered;
 			
 		}
 		
+		// Login
+		$this->login($account);
+		
+		// Sync
+		$this->sync($account, $user);
+		
 		$title = $lang->sprintf($lang->myfbconnect_redirect_title, $account['username']);
 		
+		// Redirect
 		$this->redirect('', $title, $message);
+		
+		return true;
+	}
+	
+	/**
+	 * Synchronizes Facebook's data with MyBB's data
+	 */
+	public function sync($user, $data)
+	{
+		if (!$user['uid']) {
+			return false;
+		}
+		
+		global $mybb, $db, $session, $lang;
+		
+		$update         = array();
+		$userfield = array();
+		
+		$detailsid  = "fid" . (int) $mybb->settings['myfbconnect_fbdetailsfield'];
+		$locationid = "fid" . (int) $mybb->settings['myfbconnect_fblocationfield'];
+		$bioid      = "fid" . (int) $mybb->settings['myfbconnect_fbbiofield'];
+		$sexid      = "fid" . (int) $mybb->settings['myfbconnect_fbsexfield'];
+		
+		// No data available? Let's get some
+		if (!$data) {
+			$data = $this->get_user();
+		}
+		
+		$query      = $db->simple_select("userfields", "ufid", "ufid = {$user['uid']}");
+		$check = $db->fetch_field($query, "ufid");
+		$db->free_result($query);
+		
+		if (!$check) {
+			$userfield['ufid'] = $user['uid'];
+		}
+		
+		// No Facebook ID? Sync it too!
+		if (!$user['myfb_uid'] and $data['id']) {
+			$update['myfb_uid'] = $data['id'];
+		}
+		
+		// Avatar
+		if ($user['fbavatar'] and $data['id'] and $mybb->settings['myfbconnect_fbavatar']) {
+			
+			list($maxwidth, $maxheight) = explode('x', my_strtolower($mybb->settings['maxavatardims']));
+			
+			$update["avatar"]     = $db->escape_string("http://graph.facebook.com/{$data['id']}/picture?width={$maxwidth}&height={$maxheight}");
+			$update["avatartype"] = "remote";
+			
+			// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
+			$file     = fetch_remote_file($update["avatar"]);
+			$tmp_name = $mybb->settings['avataruploadpath'] . "/remote_" . md5(random_str());
+			$fp       = @fopen($tmp_name, "wb");
+			
+			if ($fp) {
+				
+				fwrite($fp, $file);
+				fclose($fp);
+				list($width, $height, $type) = @getimagesize($tmp_name);
+				@unlink($tmp_name);
+				
+				if (!$type) {
+					$avatar_error = true;
+				}
+				
+			}
+			
+			if (!$avatar_error) {
+				
+				if ($width and $height and $mybb->settings['maxavatardims'] != "") {
+					
+					if (($maxwidth and $width > $maxwidth) or ($maxheight and $height > $maxheight)) {
+						$avatardims = $maxheight . "|" . $maxwidth;
+					}
+					
+				}
+				
+				if ($width > 0 and $height > 0 and !$avatardims) {
+					$avatardims = $width . "|" . $height;
+				}
+				
+				$update["avatardimensions"] = $avatardims;
+				
+			}
+			else {
+				$update["avatardimensions"] = $maxheight . "|" . $maxwidth;
+			}
+		}
+		
+		// Birthday
+		if ($user['fbbday'] and $data['birthday'] and $mybb->settings['myfbconnect_fbbday']) {
+			
+			$birthday           = explode("/", $data['birthday']);
+			$birthday['0']      = ltrim($birthday['0'], '0');
+			$update["birthday"] = $birthday['1'] . "-" . $birthday['0'] . "-" . $birthday['2'];
+			
+		}
+		
+		// Cover, if Profile Picture plugin is installed
+		if ($user['fbavatar'] and $data['cover']['source'] and $mybb->settings['myfbconnect_fbavatar'] and $db->field_exists("profilepic", "users")) {
+			
+			$cover                    = $data['cover']['source'];
+			$update["profilepic"]     = str_replace('/s720x720/', '/p851x315/', $cover);
+			$update["profilepictype"] = "remote";
+			
+			if ($mybb->usergroup['profilepicmaxdimensions']) {
+				
+				list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->usergroup['profilepicmaxdimensions']));
+				$update["profilepicdimensions"] = $maxwidth . "|" . $maxheight;
+				
+			}
+			else {
+				$update["profilepicdimensions"] = "851|315";
+			}
+			
+		}
+		
+		// Sex
+		if ($user['fbsex'] and $data['gender'] and $mybb->settings['myfbconnect_fbsex']) {
+			
+			if ($db->field_exists($sexid, "userfields")) {
+				
+				if ($data['gender'] == "male") {
+					$userfield[$sexid] = $lang->myfbconnect_male;
+				}
+				else if ($data['gender'] == "female") {
+					$userfield[$sexid] = $lang->myfbconnect_female;
+				}
+				
+			}
+		}
+		
+		// Name and last name
+		if ($user['fbdetails'] and $data['name'] and $mybb->settings['myfbconnect_fbdetails']) {
+			
+			if ($db->field_exists($detailsid, "userfields")) {
+				$userfield[$detailsid] = $db->escape_string($data['name']);
+			}
+			
+		}
+		
+		// Bio
+		if ($user['fbbio'] and $data['bio'] and $mybb->settings['myfbconnect_fbbio']) {
+			
+			if ($db->field_exists($bioid, "userfields")) {
+				$userfield[$bioid] = $db->escape_string(htmlspecialchars_decode(my_substr($data['bio'], 0, 400, true)));
+			}
+			
+		}
+		
+		// Location
+		if ($user['fblocation'] and $data['location']['name'] and $mybb->settings['myfbconnect_fblocation']) {
+			
+			if ($db->field_exists($locationid, "userfields")) {
+				$userfield[$locationid] = $db->escape_string($data['location']['name']);
+			}
+			
+		}
+		
+		if ($update) {
+			
+			$query = $db->update_query("users", $update, "uid = {$user['uid']}");
+			$db->free_result($query);
+			
+		}
+		
+		// Make sure we can do it
+		if ($userfield) {
+			
+			if ($userfield['ufid']) {
+				
+				$query = $db->insert_query("userfields", $userfield);
+				$db->free_result($query);
+				
+			}
+			else {
+				
+				$query = $db->update_query("userfields", $userfield, "ufid = {$user['uid']}");
+				$db->free_result($query);
+				
+			}
+			
+		}
+		
+		return true;
 	}
 	
 	/**
