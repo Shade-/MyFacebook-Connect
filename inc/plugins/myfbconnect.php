@@ -121,19 +121,19 @@ function myfbconnect_install()
 			'optionscode' => 'text',
 			'value' => ''
 		),
-		// avatar and cover
+		// Avatar and cover
 		'fbavatar' => array(
 			'title' => $lang->myfbconnect_settings_fbavatar,
 			'description' => $lang->myfbconnect_settings_fbavatar_desc,
 			'value' => '1'
 		),
-		// birthday
+		// Birthday
 		'fbbday' => array(
 			'title' => $lang->myfbconnect_settings_fbbday,
 			'description' => $lang->myfbconnect_settings_fbbday_desc,
 			'value' => '1'
 		),
-		// location
+		// Location
 		'fblocation' => array(
 			'title' => $lang->myfbconnect_settings_fblocation,
 			'description' => $lang->myfbconnect_settings_fblocation_desc,
@@ -145,7 +145,7 @@ function myfbconnect_install()
 			'optionscode' => 'text',
 			'value' => '1'
 		),
-		// bio
+		// Bio
 		'fbbio' => array(
 			'title' => $lang->myfbconnect_settings_fbbio,
 			'description' => $lang->myfbconnect_settings_fbbio_desc,
@@ -157,7 +157,7 @@ function myfbconnect_install()
 			'optionscode' => 'text',
 			'value' => '2'
 		),
-		// name and last name
+		// Name and last name
 		'fbdetails' => array(
 			'title' => $lang->myfbconnect_settings_fbdetails,
 			'description' => $lang->myfbconnect_settings_fbdetails_desc,
@@ -169,7 +169,7 @@ function myfbconnect_install()
 			'optionscode' => 'text',
 			'value' => ''
 		),
-		// sex
+		// Sex
 		'fbsex' => array(
 			'title' => $lang->myfbconnect_settings_fbsex,
 			'description' => $lang->myfbconnect_settings_fbsex_desc,
@@ -218,8 +218,6 @@ function myfbconnect_install()
 	
 	find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote('{$lang->welcome_register}</a>') . '#i', '{$lang->welcome_register}</a> &mdash; <a href="{$mybb->settings[\'bburl\']}/myfbconnect.php?action=login">{$lang->myfbconnect_login}</a>');
 	
-	rebuild_settings();
-	
 }
 
 function myfbconnect_uninstall()
@@ -254,19 +252,31 @@ function myfbconnect_uninstall()
 	
 	find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote('&mdash; <a href="{$mybb->settings[\'bburl\']}/myfbconnect.php?action=login">{$lang->myfbconnect_login}</a>') . '#i', '');
 	
-	// rebuild settings
-	rebuild_settings();
 }
 
-global $mybb, $settings;
-
 if ($settings['myfbconnect_enabled']) {
+	
+	// Global
 	$plugins->add_hook('global_start', 'myfbconnect_global');
+	
+	// Usercp
 	$plugins->add_hook('usercp_menu', 'myfbconnect_usercp_menu', 40);
 	$plugins->add_hook('usercp_start', 'myfbconnect_usercp');
-	$plugins->add_hook("admin_page_output_footer", "myfbconnect_settings_footer");
+	
+	// Who's Online
 	$plugins->add_hook("fetch_wol_activity_end", "myfbconnect_fetch_wol_activity");
 	$plugins->add_hook("build_friendly_wol_location_end", "myfbconnect_build_wol_location");
+	
+	// Admin CP
+	if (defined('IN_ADMINCP')) {
+		$plugins->add_hook("admin_page_output_header", "myfbconnect_update");
+		$plugins->add_hook("admin_page_output_footer", "myfbconnect_settings_footer");
+		
+		// Replace text inputs to select boxes dinamically
+		$plugins->add_hook("admin_config_settings_change", "myfbconnect_settings_saver");
+		$plugins->add_hook("admin_formcontainer_output_row", "myfbconnect_settings_replacer");
+	}
+	
 }
 
 function myfbconnect_global()
@@ -476,6 +486,13 @@ function myfbconnect_usercp()
 	}
 }
 
+function myfbconnect_update()
+{
+	global $mybb, $db, $cache, $lang;
+	
+	require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_update.php";
+}
+
 /**
  * Displays peekers in settings
  **/
@@ -572,113 +589,43 @@ function myfbconnect_build_wol_location(&$plugin_array)
 	return $plugin_array;
 }
 
-/********************************************************************************************************
- *
- * ON-THE-FLY UPGRADING SYSTEM: used to upgrade from any older version to any newer version of the plugin
- *
- ********************************************************************************************************/
+$GLOBALS['settingsToReplace'] = array('', '');
 
-if ($mybb->settings['myfbconnect_enabled']) {
-	$plugins->add_hook("admin_page_output_header", "myfbconnect_upgrader");
+function myfbconnect_settings_saver() {
+	global $mybb, $page, $settingsToReplace;
+
+	if($mybb->request_method == "post" && $mybb->input['upsetting'] && $page->active_action == "settings") {
+		foreach($settingsToReplace as $setting) {
+			// Converti i valori dell'array delle sezioni
+			if(!isset($mybb->input['upsetting']['myfbconnect_'.$setting]) && !is_array($mybb->input['myfbconnect_'.$setting.'_select'])) {
+				$mybb->input['upsetting']['myfbconnect_'.$setting] = '';
+			}
+			elseif(is_array($mybb->input['myfbconnect_'.$setting.'_select'])) {
+				$mybb->input['upsetting']['myfbconnect_'.$setting] = implode(",", $mybb->input['myfbconnect_'.$setting.'_select']);
+			}
+		}
+	}
 }
 
-function myfbconnect_upgrader()
-{
-	
-	global $db, $mybb, $cache, $lang;
-	
-	if (!$lang->myfbconnect) {
-		$lang->load("myfbconnect");
+function myfbconnect_settings_replacer($args) {
+	global $form, $mybb, $page, $settingsToReplace;
+
+	if($page->active_action != "settings" && $mybb->input['action'] != "change") {
+		return false;
 	}
 	
-	// let's see what version of MyFacebook Connect is currently installed on this board
-	$info           = myfbconnect_info();
-	$shadePlugins   = $cache->read('shade_plugins');
-	$oldversion     = $shadePlugins[$info['name']]['version'];
-	$currentversion = $info['version'];
+	foreach($settingsToReplace as $setting) {
 	
-	// you need to update buddy!
-	if (version_compare($oldversion, $currentversion, "<")) {
-		flash_message($lang->myfbconnect_error_needtoupdate, "error");
-	}
+		if($args['row_options']['id'] == "row_setting_myfbconnect_".$setting) {
+		
+			// Pick up the existing values...
+			preg_match("/value=\"[^A-Za-z]{1,}\"/", $args['content'], $values);
+			$values = explode(",", str_replace(array("value", "\"", "="), "", $values[0]));
 	
-	// you are updating, that's nice!
-	if ($mybb->input['upgrade'] == "myfbconnect") {
-		// but let's check if you should upgrade first
-		if (version_compare($oldversion, $currentversion, "<")) {
-			// yeah you should
-			// to 1.0.1
-			if (version_compare($oldversion, "1.0.1", "<")) {
-				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-				find_replace_templatesets('myfbconnect_register', '#' . preg_quote('<td valign="top">') . '#i', '<td valign="top">{$errors}');
-			}
-			// to 1.0.3
-			if (version_compare($oldversion, "1.0.3", "<")) {
-				// get the gid of the settings group
-				$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
-				$gid   = (int) $db->fetch_field($query, "gid");
-				
-				$newsetting = array(
-					"name" => "myfbconnect_verifiedonly",
-					"title" => $db->escape_string($lang->myfbconnect_settings_verifiedonly),
-					"description" => $db->escape_string($lang->myfbconnect_settings_verifiedonly_desc),
-					"optionscode" => "yesno",
-					"value" => "0",
-					"disporder" => "7",
-					"gid" => $gid
-				);
-				// add the new setting
-				$db->insert_query("settings", $newsetting);
-				
-				// rebuild settings and here we go!
-				rebuild_settings();
-			}
-			// to 1.1
-			if (version_compare($oldversion, "1.1", "<")) {
-				// get the gid of the settings group
-				$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
-				$gid   = (int) $db->fetch_field($query, "gid");
-				
-				$newsetting = array(
-					"name" => "myfbconnect_fbavatar",
-					"title" => $db->escape_string($lang->myfbconnect_settings_fbavatar),
-					"description" => $db->escape_string($lang->myfbconnect_settings_fbavatar_desc),
-					"optionscode" => "yesno",
-					"value" => "1",
-					"disporder" => "12",
-					"gid" => $gid
-				);
-				// add the new setting
-				$db->insert_query("settings", $newsetting);
-				
-				// rebuild settings
-				rebuild_settings();
-				require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-				find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');
-			}
-			// to 1.2
-			if (version_compare($oldversion, "1.2", "<")) {
-				$updated_setting = array(
-					"description" => $db->escape_string($lang->myfbconnect_settings_fbsex_desc)
-				);
-				// update the setting
-				$db->update_query("settings", $newsetting, "name = 'myfbconnect_fbsex'");
-				
-				// rebuild settings
-				rebuild_settings();
-			}
-			// update version n° and return a success message
-			$shadePlugins[$info['name']] = array(
-				'title' => $info['name'],
-				'version' => $currentversion
-			);
-			$cache->update('shade_plugins', $shadePlugins);
-			flash_message($lang->sprintf($lang->myfbconnect_success_updated, $oldversion, $currentversion), "success");
-			admin_redirect($_SERVER['HTTP_REFERER']);
-		} else {
-			// you shouldn't
-			flash_message($lang->myfbconnect_error_nothingtodohere, "error");
-			admin_redirect("index.php");
+			// ... and replace them with a cool selectbox
+			$args['content'] = $form->generate_group_select("myfbconnect_".$setting."_select[]", $values, array("multiple" => true, "size" => "5"));
+			
 		}
+		
 	}
 }
