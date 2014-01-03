@@ -610,15 +610,15 @@ function myfbconnect_build_wol_location(&$plugin_array)
 	return $plugin_array;
 }
 
-$GLOBALS['settingsToReplace'] = array('fblocationfield', 'fbbiofield', 'fbdetailsfield', 'fbsexfield');
+$GLOBALS['replace_custom_fields'] = array('fblocationfield', 'fbbiofield', 'fbdetailsfield', 'fbsexfield');
 
 function myfbconnect_settings_saver()
 {
-	global $mybb, $page, $settingsToReplace;
+	global $mybb, $page, $replace_custom_fields;
 
 	if ($mybb->request_method == "post" and $mybb->input['upsetting'] and $page->active_action == "settings") {
 	
-		foreach($settingsToReplace as $setting) {
+		foreach ($replace_custom_fields as $setting) {
 		
 			$parentfield = str_replace('field', '', $setting);
 			
@@ -630,12 +630,14 @@ function myfbconnect_settings_saver()
 			}
 		}
 		
+		$mybb->input['upsetting']['myfbconnect_usergroup'] = $mybb->input['myfbconnect_usergroup_select'];
+			
 	}
 }
 
 function myfbconnect_settings_replacer($args)
 {
-	global $db, $lang, $form, $mybb, $page, $settingsToReplace;
+	global $db, $lang, $form, $mybb, $page, $replace_custom_fields;
 
 	if ($page->active_action != "settings" and $mybb->input['action'] != "change") {
 		return false;
@@ -649,7 +651,7 @@ function myfbconnect_settings_replacer($args)
 		$profilefields[$field['fid']] = $field['name'];
 	}
 	
-	foreach($settingsToReplace as $setting) {
+	foreach ($replace_custom_fields as $setting) {
 	
 		if ($args['row_options']['id'] == "row_setting_myfbconnect_".$setting) {
 	
@@ -660,7 +662,7 @@ function myfbconnect_settings_replacer($args)
 				continue;
 				
 			}
-				
+			
 			$tempKey = 'myfbconnect_'.$setting;
 			
 			// Replace the textarea with a cool selectbox
@@ -668,6 +670,15 @@ function myfbconnect_settings_replacer($args)
 			
 		}
 		
+	}
+		
+	if ($args['row_options']['id'] == "row_setting_myfbconnect_usergroup") {
+			
+		$tempKey = 'myfbconnect_usergroup';
+			
+		// Replace the textarea with a cool selectbox
+		$args['content'] = $form->generate_group_select($tempKey."_select", array($mybb->settings[$tempKey]));
+			
 	}
 }
 

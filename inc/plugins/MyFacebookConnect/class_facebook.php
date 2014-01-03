@@ -159,6 +159,16 @@ class MyFacebook
 			return false;
 		}
 		
+		$thingsToReplace = array(
+			"{bbname}" => $mybb->settings['bbname'],
+			"{bburl}" => $mybb->settings['bburl']
+		);
+		
+		// Replace what needs to be replaced
+		foreach ($thingsToReplace as $find => $replace) {
+			$message = str_replace($find, $replace, $message);
+		}
+		
 		$options = array(
 			'message' => $message
 		);
