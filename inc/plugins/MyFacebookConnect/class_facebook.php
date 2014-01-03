@@ -91,7 +91,7 @@ class MyFacebook
 			'user_location',
 			'email'
 		);
-		if ($mybb->settings['myfbconnect_requestpublishingperms']) {
+		if ($mybb->settings['myfbconnect_postonwall']) {
 			$permissions[] = 'publish_stream';
 		}
 		
@@ -312,6 +312,11 @@ class MyFacebook
 				}
 			}
 			
+			// Post a message on the user's wall
+			if ($mybb->settings['myfbconnect_postonwall']) {
+				$this->post_on_wall($mybb->settings['myfbconnect_postonwall_message']);
+			}
+			
 			// Finally return our new user data
 			return $user;
 			
@@ -356,8 +361,10 @@ class MyFacebook
 			$this->join_usergroup($user, $mybb->settings['myfbconnect_usergroup']);
 		}
 		
-		// Post a message on his wall
-		$this->post_on_wall("This is a test from MyFacebook Connect");
+		// Post a message on the user's wall
+		if ($mybb->settings['myfbconnect_postonwall']) {
+			$this->post_on_wall($mybb->settings['myfbconnect_postonwall_message']);
+		}
 		
 		return true;
 	}
@@ -427,7 +434,7 @@ class MyFacebook
 		
 		// Link
 		if ($user['email'] and $account['email'] == $user['email'] and !$account['myfb_uid']) {
-			$this->link_user($account);
+			$this->link_user($account, $user['id']);
 		}
 		// Register
 		else if (!$account) {

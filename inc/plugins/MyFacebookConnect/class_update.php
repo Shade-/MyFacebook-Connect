@@ -86,8 +86,8 @@ class MyFacebook_Update
 			
 			$new_settings[] = array(
 				"name" => "myfbconnect_verifiedonly",
-				"title" => $db->escape_string($lang->myfbconnect_settings_verifiedonly),
-				"description" => $db->escape_string($lang->myfbconnect_settings_verifiedonly_desc),
+				"title" => $db->escape_string($lang->setting_myfbconnect_verifiedonly),
+				"description" => $db->escape_string($lang->setting_myfbconnect_verifiedonly_desc),
 				"optionscode" => "yesno",
 				"value" => 0,
 				"disporder" => 7,
@@ -101,8 +101,8 @@ class MyFacebook_Update
 			
 			$new_settings[] = array(
 				"name" => "myfbconnect_fbavatar",
-				"title" => $db->escape_string($lang->myfbconnect_settings_fbavatar),
-				"description" => $db->escape_string($lang->myfbconnect_settings_fbavatar_desc),
+				"title" => $db->escape_string($lang->setting_myfbconnect_fbavatar),
+				"description" => $db->escape_string($lang->setting_myfbconnect_fbavatar_desc),
 				"optionscode" => "yesno",
 				"value" => 1,
 				"disporder" => 12,
@@ -114,25 +114,39 @@ class MyFacebook_Update
 			
 		}
 		
-		// 1.2
-		if (version_compare($this->old_version, '1.2', "<")) {
-			
-			$updated_setting = array(
-				"description" => $db->escape_string($lang->myfbconnect_settings_fbsex_desc)
-			);
-			$db->update_query("settings", $newsetting, "name = 'myfbconnect_fbsex'");
-			
-		}
-		
 		// 2.0
 		if (version_compare($this->old_version, '2.0', "<")) {
 			
-			// still to define
+			$drop_settings[] = "requestpublishingperms";
+			
+			$new_settings[] = array(
+				"name" => "myfbconnect_postonwall",
+				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall),
+				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_desc),
+				"optionscode" => "yesno",
+				"value" => 0,
+				"disporder" => 30,
+				"gid" => $gid
+			);
+			
+			$new_settings[] = array(
+				"name" => "myfbconnect_postonwall_message",
+				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall_message),
+				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_message_desc),
+				"optionscode" => "textarea",
+				"value" => $lang->myfbconnect_default_postonwall_message,
+				"disporder" => 31,
+				"gid" => $gid
+			);
 			
 		}
 		
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
+		}
+		
+		if (is_array($drop_settings)) {
+			$db->delete_query('settings', "name IN ('myfbconnect_". implode("','myfbconnect_", $drop_settings) ."')");
 		}
 		
 		rebuild_settings();
@@ -173,4 +187,5 @@ class MyFacebook_Update
 	
 }
 
+// Direct init on call
 $FacebookConnectUpdate = new MyFacebook_Update();
