@@ -29,19 +29,6 @@ if (!$mybb->input['action']) {
 
 		$page->output_nav_tabs($sub_tabs, 'filestatus');
         
-        if ($mybb->settings['myfbconnect_appid'] and $mybb->settings['myfbconnect_appsecret']) {
-        	$page->output_success($lang->myfbconnect_api_ok);
-        }
-        else if (!$mybb->settings['myfbconnect_appid']) {
-        	$page->output_error($lang->myfbconnect_api_missingid);
-        }
-        else if (!$mybb->settings['myfbconnect_appsecret']) {
-        	$page->output_error($lang->myfbconnect_api_missingsecret);
-        }
-        else {
-        	$page->output_error($lang->myfbconnect_api_notconfigured);
-        }
-
         $table = new Table;
         $table->construct_header($lang->myfbconnect_file);
         $table->construct_header($lang->myfbconnect_status, array('style' => 'text-align: center'));
