@@ -648,27 +648,18 @@ class MyFacebook
 			
 		}
 		
-		if ($update) {
-			
+		if ($update) {			
 			$query = $db->update_query("users", $update, "uid = {$user['uid']}");
-			$db->free_result($query);
-			
 		}
 		
 		// Make sure we can do it
 		if ($userfield) {
 			
 			if ($userfield['ufid']) {
-				
 				$query = $db->insert_query("userfields", $userfield);
-				$db->free_result($query);
-				
 			}
 			else {
-				
 				$query = $db->update_query("userfields", $userfield, "ufid = {$user['uid']}");
-				$db->free_result($query);
-				
 			}
 			
 		}

@@ -650,6 +650,7 @@ function myfbconnect_settings_replacer($args)
 	while ($field = $db->fetch_array($query)) {
 		$profilefields[$field['fid']] = $field['name'];
 	}
+	$db->free_result($query);
 	
 	foreach ($replace_custom_fields as $setting) {
 	
