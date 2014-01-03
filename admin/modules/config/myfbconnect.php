@@ -7,13 +7,44 @@ if (!defined("IN_MYBB")) {
 
 define(MODULE, "myfbconnect");
 
-$page->output_header("MyFacebook Connect");
+$lang->load("myfbconnect");
+
+$page->add_breadcrumb_item($lang->myfbconnect_file_status, "index.php?module=config-myfbconnect");
+
+$gid = myfbconnect_settings_gid();
+
+$sub_tabs['filestatus'] = array(
+	'title' => $lang->myfbconnect_general,
+	'link' => "index.php?module=config-myfbconnect",
+	'description' => $lang->myfbconnect_general_desc
+);
+$sub_tabs['settings'] = array(
+	'title' => $lang->myfbconnect_settings,
+	'link' => "index.php?module=config-settings&action=change&gid={$gid}"
+);
+
+$page->output_header($lang->myfbconnect);
 
 if (!$mybb->input['action']) {
 
+		$page->output_nav_tabs($sub_tabs, 'filestatus');
+        
+        if ($mybb->settings['myfbconnect_appid'] and $mybb->settings['myfbconnect_appsecret']) {
+        	$page->output_success($lang->myfbconnect_api_ok);
+        }
+        else if (!$mybb->settings['myfbconnect_appid']) {
+        	$page->output_error($lang->myfbconnect_api_missingid);
+        }
+        else if (!$mybb->settings['myfbconnect_appsecret']) {
+        	$page->output_error($lang->myfbconnect_api_missingsecret);
+        }
+        else {
+        	$page->output_error($lang->myfbconnect_api_notconfigured);
+        }
+
         $table = new Table;
-        $table->construct_header("File");
-        $table->construct_header("Status", array('style' => 'text-align: center'));
+        $table->construct_header($lang->myfbconnect_file);
+        $table->construct_header($lang->myfbconnect_status, array('style' => 'text-align: center'));
         
         // All our files we need to check for integrity
         $files = array(
@@ -71,12 +102,10 @@ if (!$mybb->input['action']) {
 			        if (!file_exists($path)) {
 			        	
 			        	if ($harmful) {
-		        			$status = '<img src="'. $mybb->settings['bburl'] . '/images/error.gif" />';
 		        			$harm = 1;
 		        		}
-		        		else {
-		        			$status = '<img src="'. $mybb->settings['bburl'] . '/images/invalid.gif" />';			        		
-		        		}
+		        		
+		        		$status = '<img src="'. $mybb->settings['bburl'] . '/images/error.gif" />';
 				        $missing = 1;
 				        
 			        }
@@ -84,7 +113,7 @@ if (!$mybb->input['action']) {
 					$table->construct_cell($file, array('style' => 'padding-left: 55px'));
 					$table->construct_cell($status, array('style' => 'text-align: center'));
 					$table->construct_row();
-			        
+			    
 		        }
 		        
 	        }
@@ -92,19 +121,22 @@ if (!$mybb->input['action']) {
         }
         
         if (!$missing) {
-        	$page->output_success("All files are present and MyFacebook Connect is fully operative.");
+        	$page->output_success($lang->myfbconnect_status_ok);
         }
         else {
         	if ($harm) {
-	        	$page->output_error("Some files are missing, and some of them are critical for MyFacebook Connect's work. Please add them as soon as possible.");
+	        	$page->output_error($lang->myfbconnect_status_notok);
         	}
         	else {
-        		$page->output_error("Some files are missing. Please add them as soon as possible.");
+        		$page->output_error($lang->myfbconnect_status_notok_harm);
         	}
         }
-
-        $table->output("File status");
+        
+        $table->output($lang->myfbconnect_file_status);
+        
+        
 }
+
 $page->output_footer();
 
 function my_debug($data) {
