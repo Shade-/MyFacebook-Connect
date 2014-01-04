@@ -521,10 +521,11 @@ function myfbconnect_settings_footer()
 	global $mybb, $db;
 	if ($mybb->input["action"] == "change" and $mybb->request_method != "post") {
 		$gid = myfbconnect_settings_gid();
-		if ($mybb->input["gid"] == $gid || !$mybb->input['gid']) {
+		if ($mybb->input["gid"] == $gid or !$mybb->input['gid']) {
 			echo '<script type="text/javascript">
-	Event.observe(window, "load", function() {
+Event.observe(window, "load", function() {
 	loadMyFBConnectPeekers();
+	loadStars();
 });
 function loadMyFBConnectPeekers()
 {
@@ -536,6 +537,11 @@ function loadMyFBConnectPeekers()
 	new Peeker($$(".setting_myfbconnect_fbdetails"), $("row_setting_myfbconnect_fbdetailsfield"), /1/, true);
 	new Peeker($$(".setting_myfbconnect_fbsex"), $("row_setting_myfbconnect_fbsexfield"), /1/, true);
 	new Peeker($$(".setting_myfbconnect_postonwall"), $("row_setting_myfbconnect_postonwall_message"), /1/, true);
+}
+function loadStars()
+{
+	add_star("row_setting_myfbconnect_appid");
+	add_star("row_setting_myfbconnect_appsecret");
 }
 </script>';
 		}
