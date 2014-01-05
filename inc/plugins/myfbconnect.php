@@ -558,9 +558,9 @@ function myfbconnect_settings_gid()
 	$query = $db->simple_select("settinggroups", "gid", "name = 'myfbconnect'", array(
 		"limit" => 1
 	));
-	$gid   = $db->fetch_field($query, "gid");
+	$gid   = (int) $db->fetch_field($query, "gid");
 	
-	return intval($gid);
+	return $gid;
 }
 
 function myfbconnect_fetch_wol_activity(&$user_activity)
@@ -622,7 +622,7 @@ function myfbconnect_settings_saver()
 {
 	global $mybb, $page, $replace_custom_fields;
 
-	if ($mybb->request_method == "post" and $mybb->input['upsetting'] and $page->active_action == "settings") {
+	if ($mybb->request_method == "post" and $mybb->input['upsetting'] and $page->active_action == "settings" and $mybb->input['gid'] == myfbconnect_settings_gid()) {
 	
 		foreach ($replace_custom_fields as $setting) {
 		
@@ -645,7 +645,7 @@ function myfbconnect_settings_replacer($args)
 {
 	global $db, $lang, $form, $mybb, $page, $replace_custom_fields;
 
-	if ($page->active_action != "settings" and $mybb->input['action'] != "change") {
+	if ($page->active_action != "settings" and $mybb->input['action'] != "change" and $mybb->input['gid'] != myfbconnect_settings_gid()) {
 		return false;
 	}
         
