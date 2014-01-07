@@ -34,6 +34,11 @@ if ($mybb->settings['disableregs'] == 1) {
 require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_facebook.php";
 $FacebookConnect = new MyFacebook();
 
+// If the user is watching another page, fallback to login
+if (!in_array($mybb->input['action'], explode(',', ALLOWABLE_PAGE))) {
+	$mybb->input['action'] = 'login';
+}
+
 // Begin the authenticating process
 if ($mybb->input['action'] == 'login') {
 	
@@ -45,7 +50,7 @@ if ($mybb->input['action'] == 'login') {
 	
 }
 
-// Receive the incoming data from Facebook and evaluates the user
+// Receive the incoming data from Facebook and evaluate the user
 if ($mybb->input['action'] == 'do_login') {
 	
 	// Already logged in? You should not use this
@@ -183,12 +188,5 @@ if ($mybb->input['action'] == 'register') {
 	// Output our page
 	eval("\$fbregister = \"" . $templates->get("myfbconnect_register") . "\";");
 	output_page($fbregister);
-	
-}
-
-if (!$mybb->input['action']) {
-
-	header("Location: index.php");
-	exit;
 	
 }
