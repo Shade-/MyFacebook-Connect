@@ -67,7 +67,7 @@ class MyFacebook_Update
 	{
 		global $db, $mybb, $cache, $lang;
 		
-		$new_settings = array();
+		$new_settings = $drop_settings = array();
 				
 		// Get the gid
 		$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
@@ -139,13 +139,17 @@ class MyFacebook_Update
 				"gid" => $gid
 			);
 			
+			// Let's at least try to change that, anyway, 2.0 has backward compatibility so it doesn't matter if this fails
+			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
+			find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote('fblogin') . '#i', 'login');
+			
 		}
 		
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
 		}
 		
-		if (is_array($drop_settings)) {
+		if ($drop_settings) {
 			$db->delete_query('settings', "name IN ('myfbconnect_". implode("','myfbconnect_", $drop_settings) ."')");
 		}
 		
