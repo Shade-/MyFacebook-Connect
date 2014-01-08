@@ -1,14 +1,18 @@
 ## MyFacebook Connect
 
-MyFacebook Connect is the ultimate solution for MyBB <-> Facebook bridging. Featuring smooth login and registration.
+MyFacebook Connect is the ultimate solution for MyBB <-> Facebook bridging, featuring smooth login and registration.
 
-> **Unstable version** 2.0  
-> **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL, Server-to-server connections support
+> **Version** 2.0  
+> **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL, Server-to-server connections support  
 > **Author** Shade  
 
-### Untested code
+### Info
 
-This branch was created in order to collect all the **unstable and untested code** prior to release every update. Please use carefully and at your own risk. Untested queries might harm your Forum structure. Use the code in 'master' branch instead.
+MyFacebook Connect lets you and your users register and login with Facebook on your MyBB forum with an high quality and lightweight solution.
+
+Existing users can link their accounts to Facebook in order to use the login functionality without having to create a fresh new account. Users and admins can also decide what informations should be imported ("synced") with their Facebook account every time they log in.
+
+Many options are available, including an anti-spam measure to allow only verified Facebook accounts to register and an option to post a customizable message on the user's wall when he registers or links his account with Facebook.
 
 ### Documentation
 
