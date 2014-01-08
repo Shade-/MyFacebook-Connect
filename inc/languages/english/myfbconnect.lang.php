@@ -22,7 +22,7 @@ $l['myfbconnect_error_noidprovided'] = "An unknown error occurred while fetching
 $l['myfbconnect_error_unknown'] = "An unknown error occurred.";
 
 // usercp
-$l['myfbconnect_settings_title'] = "Facebook integration";
+$l['myfbconnect_settings_title'] = $l['myfbconnect_page_title'] = "Facebook integration";
 $l['myfbconnect_settings_save'] = "Save";
 $l['myfbconnect_settings_unlink'] = "Unlink my account";
 $l['myfbconnect_settings_fbavatar'] = "Avatar and cover";
