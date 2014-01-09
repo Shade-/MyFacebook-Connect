@@ -496,7 +496,7 @@ class MyFacebook
 	/**
 	 * Synchronizes Facebook's data with MyBB's data
 	 */
-	public function sync($user, $data)
+	public function sync($user, $data = '')
 	{
 		if (!$user['uid']) {
 			return false;
