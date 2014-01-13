@@ -66,7 +66,7 @@ if ($mybb->input['action'] == 'do_login') {
 		
 		if ($process['error']) {
 			$errors = $process['error'];
-			$mybb->input['action'] = "fbregister";
+			$mybb->input['action'] = 'register';
 		}
 	}
 	
@@ -87,7 +87,7 @@ if ($mybb->input['action'] == 'register') {
 		$user = $FacebookConnect->get_user();
 	}
 	
-	// came from our reg page
+	// Came from our reg page
 	if ($mybb->request_method == "post") {
 	
 		$newuser = array();
@@ -142,7 +142,7 @@ if ($mybb->input['action'] == 'register') {
 	$options = '';
 	$settingsToBuild = '';
 	
-	// checking if we want to sync that stuff (admin)
+	// Checking if we want to sync that stuff (admin)
 	$settingsToCheck = array(
 		'fbavatar',
 		'fbbday',

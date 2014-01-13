@@ -302,32 +302,38 @@ if ($settings['myfbconnect_enabled']) {
 function myfbconnect_global()
 {
 	
-	global $mybb, $lang, $templatelist;
+	global $mybb, $templatelist;
 	
-	if (!$lang->myfbconnect) {
-		$lang->load("myfbconnect");
+	if ($templatelist) {
+		$templatelist = explode(',', $templatelist);
 	}
 	
-	if (isset($templatelist)) {
-		$templatelist .= ',';
+	if (THIS_SCRIPT == 'myfbconnect.php') {
+	
+		$templatelist[] = 'myfbconnect_register';
+		$templatelist[] = 'myfbconnect_register_settings_setting';
+		
 	}
 	
-	if (THIS_SCRIPT == "myfbconnect.php") {
-		$templatelist .= 'myfbconnect_register,myfbconnect_register_settings_setting';
+	if (THIS_SCRIPT == 'usercp.php') {
+		$templatelist[] = 'myfbconnect_usercp_menu';
 	}
 	
-	if (THIS_SCRIPT == "usercp.php") {
-		$templatelist .= 'myfbconnect_usercp_menu';
+	if (THIS_SCRIPT == 'usercp.php' and $mybb->input['action'] == 'myfbconnect') {
+	
+		$templatelist[] = 'myfbconnect_usercp_settings';
+		$templatelist[] = 'myfbconnect_usercp_settings_linkprofile';
+		$templatelist[] = 'myfbconnect_usercp_settings_setting';
+		$templatelist[] = 'myfbconnect_usercp_showsettings';
+		
 	}
 	
-	if (THIS_SCRIPT == "usercp.php" AND $mybb->input['action'] == "myfbconnect") {
-		$templatelist .= ',myfbconnect_usercp_settings,myfbconnect_usercp_settings_linkprofile,myfbconnect_usercp_showsettings,myfbconnect_usercp_settings_setting';
-	}
+	$templatelist = implode(',', array_filter($templatelist));
 }
 
 function myfbconnect_usercp_menu()
 {
-	
+
 	global $mybb, $templates, $theme, $usercpmenu, $lang, $collapsed, $collapsedimg;
 	
 	if (!$lang->myfbconnect) {
@@ -338,8 +344,7 @@ function myfbconnect_usercp_menu()
 }
 
 function myfbconnect_usercp()
-{
-	
+{	
 	global $mybb, $lang, $inlinesuccess;
 	
 	// Load API in certain areas
@@ -455,9 +460,6 @@ function myfbconnect_usercp()
 		$options = '';
 		if ($mybb->user['myfb_uid']) {
 			
-			$text   = $lang->myfbconnect_settings_whattosync;
-			$unlink = "<input type=\"submit\" class=\"button\" name=\"unlink\" value=\"{$lang->myfbconnect_settings_unlink}\" />";
-			
 			$userSettings = array();
 			
 			// Checking if admins and users want to sync that stuff
@@ -477,24 +479,35 @@ function myfbconnect_usercp()
 				
 			}
 			
-			$settings = '';
-			foreach ($userSettings as $setting => $value) {
-				
-				$tempKey = 'myfbconnect_settings_' . $setting;
-				
-				$checked = '';
-				
-				if ($value) {
-					$checked = " checked=\"checked\"";
+			$text   = $lang->myfbconnect_settings_whattosync;
+			$unlink = "<input type=\"submit\" class=\"button\" name=\"unlink\" value=\"{$lang->myfbconnect_settings_unlink}\" />";
+			
+			if ($userSettings) {
+			
+				foreach ($userSettings as $setting => $value) {
+					
+					$tempKey = 'myfbconnect_settings_' . $setting;
+					
+					$checked = '';
+					
+					if ($value) {
+						$checked = " checked=\"checked\"";
+					}
+					
+					$label = $lang->$tempKey;
+					$altbg = alt_trow();
+					
+					eval("\$options .= \"" . $templates->get('myfbconnect_usercp_settings_setting') . "\";");
+					
 				}
 				
-				$label = $lang->$tempKey;
-				$altbg = alt_trow();
-				
-				eval("\$options .= \"" . $templates->get('myfbconnect_usercp_settings_setting') . "\";");
-				
 			}
-		} else {
+			else {
+				$text = $lang->myfbconnect_settings_connected;
+			}
+			
+		}
+		else {
 			
 			$text = $lang->myfbconnect_settings_linkaccount;
 			eval("\$options = \"" . $templates->get('myfbconnect_usercp_settings_linkprofile') . "\";");

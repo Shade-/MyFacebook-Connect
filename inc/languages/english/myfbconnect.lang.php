@@ -34,6 +34,7 @@ $l['myfbconnect_settings_fblocation'] = "Location";
 $l['myfbconnect_link'] = "Click here to link your account with your Facebook's one";
 $l['myfbconnect_settings_whattosync'] = "Select what info we should import from your Facebook. We'll immediately synchronize your desired data on-the-fly while updating the settings, adding what should be added (but not removing what should be removed - that's up to you!).";
 $l['myfbconnect_settings_linkaccount'] = "Hit the button on your right to link your Facebook account with the one on this board.";
+$l['myfbconnect_settings_connected'] = "Your Facebook account is currently linked to the account on this board. Click on the button below to unlink.";
 
 // registration
 $l['myfbconnect_register_title'] = "Facebook registration";

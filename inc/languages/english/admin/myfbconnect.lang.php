@@ -57,7 +57,7 @@ $l['setting_myfbconnect_fbsexfield_desc'] = "Select the Custom Profile Field tha
 $l['myfbconnect_default_passwordpm_subject'] = "New password";
 $l['myfbconnect_default_passwordpm_message'] = "Welcome on our Forums, dear {user}!
 
-We are pleased you are registering with Facebook. We have generated a random password for you which you should take note somewhere if you would like to change your personal infos. We require for security reasons that you specify your password when you change things such as the email, your username and the password itself, so keep it secret!
+We appreciate that you have registered with Facebook. We have generated a random password for you which you should take note somewhere if you would like to change your personal infos. We require for security reasons that you specify your password when you change things such as the email, your username and the password itself, so keep it secret!
 
 Your password is: [b]{password}[/b]
 
