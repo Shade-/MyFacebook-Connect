@@ -25,7 +25,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '2.0',
+		'version' => '2.0.1',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
