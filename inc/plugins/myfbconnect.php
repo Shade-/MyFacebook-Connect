@@ -302,7 +302,7 @@ if ($settings['myfbconnect_enabled']) {
 function myfbconnect_global()
 {
 	
-	global $mybb, $templatelist;
+	global $mybb, $lang, $templatelist;
 	
 	if ($templatelist) {
 		$templatelist = explode(',', $templatelist);
@@ -329,6 +329,8 @@ function myfbconnect_global()
 	}
 	
 	$templatelist = implode(',', array_filter($templatelist));
+	
+	$lang->load('myfbconnect');
 }
 
 function myfbconnect_usercp_menu()
