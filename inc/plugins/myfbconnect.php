@@ -307,6 +307,10 @@ function myfbconnect_global()
 	if ($templatelist) {
 		$templatelist = explode(',', $templatelist);
 	}
+	// Fixes common warnings (due to $templatelist being void)
+	else {
+		$templatelist = array();
+	}
 	
 	if (THIS_SCRIPT == 'myfbconnect.php') {
 	
@@ -329,8 +333,10 @@ function myfbconnect_global()
 	}
 	
 	$templatelist = implode(',', array_filter($templatelist));
+		
 	
 	$lang->load('myfbconnect');
+	
 }
 
 function myfbconnect_usercp_menu()
@@ -525,7 +531,11 @@ function myfbconnect_update()
 {
 	global $mybb, $db, $cache, $lang;
 	
-	require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_update.php";
+	$file = MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_update.php";
+	
+	if (file_exists($file)) {
+		require_once $file;
+	}
 }
 
 /**
