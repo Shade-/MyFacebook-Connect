@@ -25,7 +25,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '2.0.1',
+		'version' => '2.0.2',
 		'compatibility' => '16*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -270,7 +270,9 @@ function myfbconnect_uninstall()
 	
 }
 
-if ($settings['myfbconnect_enabled']) {
+global $mybb;
+
+if ($mybb->settings['myfbconnect_enabled']) {
 	
 	// Global
 	$plugins->add_hook('global_start', 'myfbconnect_global');
