@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 2.0
+ * @version 2.0.2
  */
 
 class MyFacebook
@@ -122,8 +122,8 @@ class MyFacebook
 		}
 		catch (FacebookApiException $e) {
 			
-			// The user should have denied permissions. Still available with check_user() though. Reask for login.
-			$this->authenticate();
+			// The user should have denied permissions. Still available with check_user() though
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 			
 		}
 		
@@ -185,8 +185,8 @@ class MyFacebook
 		}
 		catch (FacebookApiException $e) {
 			
-			// The user should have denied posting permissions. Reask for them.
-			$this->authenticate();
+			// The user should have denied posting permissions, but other errors might rise.
+			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
 			
 		}
 		
