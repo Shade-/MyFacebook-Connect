@@ -2,7 +2,7 @@
 
 MyFacebook Connect is the ultimate solution for MyBB <-> Facebook bridging, featuring smooth login and registration.
 
-> **Version** 2.0  
+> **Version** 2.0.2  
 > **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL, Server-to-server connections support  
 > **Author** Shade  
 
