@@ -153,7 +153,7 @@ class MyFacebook
 	 */
 	private function post_on_wall($message, $link = '')
 	{
-		global $mybb;
+		global $mybb, $lang;
 		
 		if (!$message) {
 			return false;
