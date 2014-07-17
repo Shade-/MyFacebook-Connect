@@ -267,7 +267,7 @@ class MyFacebook
 		$userhandler->set_data($new_user);
 		if ($userhandler->validate_user()) {
 			
-			$user = $userhandler->insert_user();
+			$user_info = $userhandler->insert_user();
 			
 			$plugins->run_hooks("member_do_register_end");
 			
@@ -288,7 +288,7 @@ class MyFacebook
 				$subject = $mybb->settings['myfbconnect_passwordpm_subject'];
 				
 				$thingsToReplace = array(
-					"{user}" => $user['username'],
+					"{user}" => $user_info['username'],
 					"{password}" => $password
 				);
 				
@@ -302,7 +302,7 @@ class MyFacebook
 					"message" => $message,
 					"fromid" => $fromid,
 					"toid" => array(
-						$user['uid']
+						$user_info['uid']
 					)
 				);
 				
@@ -328,7 +328,7 @@ class MyFacebook
 			}
 			
 			// Finally return our new user data
-			return $user;
+			return $user_info;
 			
 		}
 		else {
