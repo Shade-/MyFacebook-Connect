@@ -251,7 +251,6 @@ class MyFacebook
 			"email" => $user['email'],
 			"email2" => $user['email'],
 			"usergroup" => (int) $mybb->settings['myfbconnect_usergroup'],
-			"displaygroup" => (int) $mybb->settings['myfbconnect_usergroup'],
 			"regip" => $session->ipaddress,
 			"longregip" => my_ip2long($session->ipaddress),
 			"options" => array(
