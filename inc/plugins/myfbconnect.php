@@ -287,12 +287,10 @@ if ($mybb->settings['myfbconnect_enabled']) {
 	
 	// Admin CP
 	if (defined('IN_ADMINCP')) {
+	
+		// Update routines and settings
 		$plugins->add_hook("admin_page_output_header", "myfbconnect_update");
 		$plugins->add_hook("admin_page_output_footer", "myfbconnect_settings_footer");
-		
-		// Custom module
-        $plugins->add_hook("admin_config_menu", "myfbconnect_admin_config_menu");
-        $plugins->add_hook("admin_config_action_handler", "myfbconnect_admin_config_action_handler");
 		
 		// Replace text inputs to select boxes dinamically
 		$plugins->add_hook("admin_config_settings_change", "myfbconnect_settings_saver");
@@ -714,25 +712,4 @@ function myfbconnect_settings_replacer($args)
 		$args['content'] = $form->generate_group_select($tempKey."_select", array($mybb->settings[$tempKey]));
 			
 	}
-}
-
-function myfbconnect_admin_config_menu($sub_menu)
-{
-        global $lang;
-
-        $lang->load("myfbconnect");
-
-        $sub_menu[] = array("id" => "myfbconnect", "title" => $lang->myfbconnect, "link" => "index.php?module=config-myfbconnect");
-
-        return $sub_menu;
-}
-
-function myfbconnect_admin_config_action_handler($actions)
-{
-        $actions['myfbconnect'] = array(
-                "active" => "myfbconnect",
-                "file" => "myfbconnect.php"
-        );
-
-        return $actions;
 }

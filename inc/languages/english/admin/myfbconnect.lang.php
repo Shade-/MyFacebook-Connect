@@ -1,10 +1,10 @@
 <?php
 // Installation
 $l['myfbconnect'] = "MyFacebook Connect";
-$l['myfbconnect_pluginlibrary_missing'] = "<a href=\"http://mods.mybb.com/view/pluginlibrary\">PluginLibrary</a> is missing. Please install it before doing anything else with myfbconnect.";
+$l['myfbconnect_pluginlibrary_missing'] = "<a href=\"http://mods.mybb.com/view/pluginlibrary\">PluginLibrary</a> is missing. Please install it before doing anything else with MyFacebook Connect.";
 
-// Settings - 
-$l['setting_group_myfbconnect'] = "Facebook login and registration settings";
+// Settings
+$l['setting_group_myfbconnect'] = "Facebook Login and Registration";
 $l['setting_group_myfbconnect_desc'] = "Here you can manage Facebook login and registration on your board, changing API keys and options to enable or disable certain aspects of MyFacebook Connect plugin.";
 $l['setting_myfbconnect_enable'] = "Master switch";
 $l['setting_myfbconnect_enable_desc'] = "Do you want to let your users login and register with Facebook? If an user is already registered the account will be linked to its Facebook account.";
@@ -53,7 +53,7 @@ $l['setting_myfbconnect_fbsex_desc'] = "If you would like to import sex from Fac
 $l['setting_myfbconnect_fbsexfield'] = "Sex Custom Profile Field";
 $l['setting_myfbconnect_fbsexfield_desc'] = "Select the Custom Profile Field that will be filled with Facebook's sex.";
 
-// Default pm text
+// Default PM
 $l['myfbconnect_default_passwordpm_subject'] = "New password";
 $l['myfbconnect_default_passwordpm_message'] = "Welcome on our Forums, dear {user}!
 
@@ -71,17 +71,6 @@ $l['myfbconnect_error_nothingtodohere'] = "Ooops, MyFacebook Connect is already 
 
 // Success
 $l['myfbconnect_success_updated'] = "MyFacebook Connect has been updated correctly from version {1} to {2}. Good job!";
-
-// ACP Module
-$l['myfbconnect_file_status'] = "File Status";
-$l['myfbconnect_file'] = "File";
-$l['myfbconnect_status'] = "Status";
-$l['myfbconnect_general'] = "General";
-$l['myfbconnect_general_desc'] = "Check the file status of MyFacebook Connect, common troubleshooting routines and other stuff.";
-$l['myfbconnect_status_ok'] = "All MyFacebook Connect files are present in the correct directories.";
-$l['myfbconnect_status_notok'] = "Some files are missing. Please add them as soon as possible.";
-$l['myfbconnect_status_notok_harm'] = "Some files are missing, and some of them are critical for MyFacebook Connect's work. Please add them as soon as possible.";
-$l['myfbconnect_settings'] = "Settings";
 
 // Others
 $l['myfbconnect_select_nofieldsavailable'] = "<span style='color: red'>There are no profile fields available. <b><a href='index.php?module=config-profile_fields'>Create one</a></b> to use this functionality.</span>";
