@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 2.0.2
+ * @version 2.1
  */
 
 if (!defined('IN_MYBB')) {
@@ -25,8 +25,8 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '2.0.2',
-		'compatibility' => '16*',
+		'version' => '2.1',
+		'compatibility' => '16*,17*,18*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
 }
@@ -544,31 +544,63 @@ function myfbconnect_update()
 function myfbconnect_settings_footer()
 {
 	global $mybb, $db;
+	
 	if ($mybb->input["action"] == "change" and $mybb->request_method != "post") {
+	
 		$gid = myfbconnect_settings_gid();
+		
 		if ($mybb->input["gid"] == $gid or !$mybb->input['gid']) {
-			echo '<script type="text/javascript">
-Event.observe(window, "load", function() {
-	loadMyFBConnectPeekers();
-	loadStars();
-});
-function loadMyFBConnectPeekers()
-{
-	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_subject"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_message"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_fbbio"), $("row_setting_myfbconnect_fbbiofield"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_fblocation"), $("row_setting_myfbconnect_fblocationfield"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_fbdetails"), $("row_setting_myfbconnect_fbdetailsfield"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_fbsex"), $("row_setting_myfbconnect_fbsexfield"), /1/, true);
-	new Peeker($$(".setting_myfbconnect_postonwall"), $("row_setting_myfbconnect_postonwall_message"), /1/, true);
-}
-function loadStars()
-{
-	add_star("row_setting_myfbconnect_appid");
-	add_star("row_setting_myfbconnect_appsecret");
-}
-</script>';
+			
+			// 1.8 has jQuery, not Prototype
+			if ($mybb->version_code >= 1700) {
+				echo '<script type="text/javascript">
+	$(document).ready(function() {
+		loadMyFBConnectPeekers();
+		loadStars();
+	});
+	function loadMyFBConnectPeekers()
+	{
+		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_subject"), /1/, true);
+		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_message"), /1/, true);
+		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
+		new Peeker($(".setting_myfbconnect_fbbio"), $("#row_setting_myfbconnect_fbbiofield"), /1/, true);
+		new Peeker($(".setting_myfbconnect_fblocation"), $("#row_setting_myfbconnect_fblocationfield"), /1/, true);
+		new Peeker($(".setting_myfbconnect_fbdetails"), $("#row_setting_myfbconnect_fbdetailsfield"), /1/, true);
+		new Peeker($(".setting_myfbconnect_fbsex"), $("#row_setting_myfbconnect_fbsexfield"), /1/, true);
+		new Peeker($(".setting_myfbconnect_postonwall"), $("#row_setting_myfbconnect_postonwall_message"), /1/, true);
+	}
+	function loadStars()
+	{
+		add_star("row_setting_myfbconnect_appid");
+		add_star("row_setting_myfbconnect_appsecret");
+	}
+	</script>';
+			}
+			else {
+				echo '<script type="text/javascript">
+	Event.observe(window, "load", function() {
+		loadMyFBConnectPeekers();
+		loadStars();
+	});
+	function loadMyFBConnectPeekers()
+	{
+		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_subject"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_message"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_fbbio"), $("row_setting_myfbconnect_fbbiofield"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_fblocation"), $("row_setting_myfbconnect_fblocationfield"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_fbdetails"), $("row_setting_myfbconnect_fbdetailsfield"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_fbsex"), $("row_setting_myfbconnect_fbsexfield"), /1/, true);
+		new Peeker($$(".setting_myfbconnect_postonwall"), $("row_setting_myfbconnect_postonwall_message"), /1/, true);
+	}
+	function loadStars()
+	{
+		add_star("row_setting_myfbconnect_appid");
+		add_star("row_setting_myfbconnect_appsecret");
+	}
+	</script>';
+			}
+
 		}
 	}
 }
