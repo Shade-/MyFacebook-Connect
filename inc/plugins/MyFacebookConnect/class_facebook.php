@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 2.0.2
+ * @version 2.1
  */
 
 class MyFacebook
@@ -759,11 +759,14 @@ class MyFacebook
 	 */
 	public function redirect($url = '', $title = '', $message = '')
 	{
-		if (!$url) {
+		if (!$url and $_SERVER['HTTP_REFERER']) {
 			$url = $_SERVER['HTTP_REFERER'];
 		}
+		else {
+			$url = "index.php";
+		}
 		
-		if (!strpos($url, "action=login") and !strpos($url, "action=do_login") and !strpos($url, "action=register")) {
+		if ($url and strpos($url, "myfbconnect.php") === false) {
 			$url = htmlspecialchars_uni($url);
 		}
 		else {
