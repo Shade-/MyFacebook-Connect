@@ -1,6 +1,6 @@
 ## MyFacebook Connect
 
-> **Latest version** 2.0.2  
+> **Latest version** 2.1  
 > **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL, Server-to-server connections support  
 > **Author** Shade  
 
