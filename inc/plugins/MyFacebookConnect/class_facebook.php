@@ -533,8 +533,12 @@ class MyFacebook
 		if ($user['fbavatar'] and $data['id'] and $mybb->settings['myfbconnect_fbavatar']) {
 			
 			list($maxwidth, $maxheight) = explode('x', my_strtolower($mybb->settings['maxavatardims']));
-			
-			$update["avatar"]     = $db->escape_string("http://graph.facebook.com/{$data['id']}/picture?width={$maxwidth}&height={$maxheight}");
+			// getting the actual picture URL, which is what we need to display the avatar
+			$json_content = file_get_contents("http://graph.facebook.com/{$data['id']}/picture?redirect=0&width={$maxwidth}&height={$maxheight}");
+                        $json_obj = json_decode($json_content);
+                        $update["avatar"]     = $db->escape_string($json_obj->data->url);
+			// this commented line instead was storing the URL responsible for redirecting to the picture
+			//$update["avatar"]     = $db->escape_string("http://graph.facebook.com/{$data['id']}/picture?width={$maxwidth}&height={$maxheight}");
 			$update["avatartype"] = "remote";
 			
 			// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
