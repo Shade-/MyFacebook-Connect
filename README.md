@@ -1,8 +1,7 @@
 ## MyFacebook Connect
 
 > **Latest version** 2.1  
-> **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL, Server-to-server connections support  
-> **Author** Shade  
+> **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL with https module enabled, port 443 opened on your server
 
 MyFacebook Connect is the ultimate solution for bridging between MyBB and Facebook, featuring smooth login and registration.
 
