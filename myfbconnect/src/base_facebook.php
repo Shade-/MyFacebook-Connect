@@ -121,7 +121,7 @@ class FacebookApiException extends Exception
 abstract class BaseFacebook
 {
   /**
-   * Version.
+   * Version. 4.0 adapted for old PHP versions
    */
   const VERSION = '3.2.3';
 
@@ -154,12 +154,12 @@ abstract class BaseFacebook
    * Maps aliases to Facebook domains.
    */
   public static $DOMAIN_MAP = array(
-    'api'         => 'https://api.facebook.com/',
+    'api'         => 'https://api.facebook.com/v2.0/',
     'api_video'   => 'https://api-video.facebook.com/',
     'api_read'    => 'https://api-read.facebook.com/',
-    'graph'       => 'https://graph.facebook.com/',
+    'graph'       => 'https://graph.facebook.com/v2.0/',
     'graph_video' => 'https://graph-video.facebook.com/',
-    'www'         => 'https://www.facebook.com/',
+    'www'         => 'https://www.facebook.com/v2.0/',
   );
 
   /**

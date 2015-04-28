@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 2.1
+ * @version 2.2
  */
 
 class MyFacebook
@@ -87,12 +87,14 @@ class MyFacebook
 		global $mybb;
 		
 		$permissions = array(
+			'public_profile',
+			'user_about_me',
 			'user_birthday',
 			'user_location',
 			'email'
 		);
 		if ($mybb->settings['myfbconnect_postonwall']) {
-			$permissions[] = 'publish_stream';
+			$permissions[] = 'publish_actions';
 		}
 		
 		// Get the URL and redirect the user
@@ -184,6 +186,12 @@ class MyFacebook
 			$this->facebook->api('/me/feed', 'POST', $options);
 		}
 		catch (FacebookApiException $e) {
+		
+			$result = $e->getResult();
+			
+			if ($result['error']['code'] == 200) {
+				return false;
+			}
 			
 			// The user should have denied posting permissions, but other errors might rise.
 			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));

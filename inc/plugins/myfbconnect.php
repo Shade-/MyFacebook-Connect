@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 2.1
+ * @version 2.2
  */
 
 if (!defined('IN_MYBB')) {
@@ -17,6 +17,25 @@ if (!defined("PLUGINLIBRARY")) {
 	define("PLUGINLIBRARY", MYBB_ROOT . "inc/plugins/pluginlibrary.php");
 }
 
+function verify_port_443()
+{
+	global $lang;
+	
+	// 3 seconds timeout to check for port 443 is enough
+	$fp = @fsockopen('127.0.0.1', 443, $errno, $errstr, 3);
+	
+	// Port 443 is closed or blocked
+	if (!$fp) {
+	
+		flash_message($lang->myfbconnect_error_port_443_not_open, 'error');
+		admin_redirect("index.php?module=config-plugins");
+	    
+	}
+	
+	return false;
+
+}
+
 function myfbconnect_info()
 {
 	return array(
@@ -25,7 +44,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '2.1',
+		'version' => '2.2',
 		'compatibility' => '16*,17*,18*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -49,6 +68,8 @@ function myfbconnect_install()
 	if (!$lang->myfbconnect) {
 		$lang->load('myfbconnect');
 	}
+	
+	verify_port_443();
 	
 	if (!file_exists(PLUGINLIBRARY)) {
 		flash_message($lang->myfbconnect_pluginlibrary_missing, "error");
@@ -197,16 +218,28 @@ function myfbconnect_install()
 		),
 	));
 	
+	$columns_to_check = array('fbavatar', 'fbsex', 'fbdetails', 'fbbio', 'fbbday', 'fblocation', 'bigint(50) NOT NULL DEFAULT 0' => 'myfb_uid');
+	$columns_to_add = '';
+	
+	// Check if columns are already there (this prevents duplicate installation errors)
+	foreach ($columns_to_check as $type => $name) {
+		
+		if (!$db->field_exists($name, 'users')) {
+			
+			if (is_int($type)) {
+				$type = 'int(1) NOT NULL DEFAULT 1';
+			}
+		
+			$columns_to_add .= "`{$name}` $type,";
+			
+		}
+		
+	}
+	
+	$columns_to_add = rtrim($columns_to_add, ',');
+	
 	// Insert our Facebook columns into the database
-	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD (
-		`fbavatar` int(1) NOT NULL DEFAULT 1,
-		`fbsex` int(1) NOT NULL DEFAULT 1,
-		`fbdetails` int(1) NOT NULL DEFAULT 1,
-		`fbbio` int(1) NOT NULL DEFAULT 1,
-		`fbbday` int(1) NOT NULL DEFAULT 1,
-		`fblocation` int(1) NOT NULL DEFAULT 1,
-		`myfb_uid` bigint(50) NOT NULL DEFAULT 0
-		)");
+	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD ({$columns_to_add})");
 	
 	// Insert our templates	   
 	$dir       = new DirectoryIterator(dirname(__FILE__) . '/MyFacebookConnect/templates');
