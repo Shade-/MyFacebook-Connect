@@ -625,7 +625,7 @@ function myfbconnect_update()
  **/
 function myfbconnect_settings_footer()
 {
-	global $mybb, $db;
+	global $mybb, $db, $lang;
 	
 	if ($mybb->input["action"] == "change" and $mybb->request_method != "post") {
 	
