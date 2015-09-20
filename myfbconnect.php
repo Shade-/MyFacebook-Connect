@@ -46,6 +46,8 @@ if ($mybb->input['action'] == 'login') {
 		error($lang->myfbconnect_error_alreadyloggedin);
 	}
 	
+	// Remember page to ensure we redirect to the previous page after the user logs in
+	$FacebookConnect->remember_page();
 	$FacebookConnect->authenticate();
 	
 }

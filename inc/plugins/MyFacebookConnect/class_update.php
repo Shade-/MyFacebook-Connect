@@ -145,6 +145,25 @@ class MyFacebook_Update
 			
 		}
 		
+		// 2.3
+		if (version_compare($this->old_version, '2.3', "<")) {
+			
+			// Add the report table
+			if (!$db->table_exists('myfbconnect_reports')) {
+		        $collation = $db->build_create_table_collation();
+		        $db->write_query("CREATE TABLE ".TABLE_PREFIX."myfbconnect_reports(
+		            id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		            dateline VARCHAR(15) NOT NULL,
+		            code VARCHAR(10) NOT NULL,
+		            file TEXT,
+		            line INT(6) NOT NULL,
+		            message TEXT,
+		            trace TEXT
+		            ) ENGINE=MyISAM{$collation};");
+		    }
+			
+		}
+		
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
 		}

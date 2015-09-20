@@ -65,16 +65,27 @@ With regards,
 our Team";
 $l['myfbconnect_default_postonwall_message'] = "I have just registered on #{bbname}! Join me now registering with Facebook on {bburl}!";
 
+// Bug reports
+$l['myfbconnect_reports'] = "Bug reports";
+$l['myfbconnect_reports_date'] = "Date";
+$l['myfbconnect_reports_line'] = "Line";
+$l['myfbconnect_reports_file'] = "File";
+$l['myfbconnect_reports_code'] = "Code";
+$l['myfbconnect_reports_export'] = "Export";
+$l['myfbconnect_reports_delete'] = "Delete";
+$l['myfbconnect_reports_delete_all'] = "Delete all reports";
+
 // Errors
 $l['myfbconnect_error_needtoupdate'] = "You seem to have currently installed an outdated version of MyFacebook Connect. Please <a href=\"index.php?module=config-settings&update=myfbconnect\">click here</a> to run the upgrade script.";
 $l['myfbconnect_error_nothingtodohere'] = "Ooops, MyFacebook Connect is already up-to-date! Nothing to do here...";
-$l['myfbconnect_error_port_443_not_open'] = "A connection test has been made, and your server's 443 port seems to be closed. Facebook needs port 443 open to communicate and authenticate users. If:<br /><br />
+$l['myfbconnect_error_port_443_not_open'] = "A connection test has been made, and your server's 443 port seems to be closed. Facebook needs port 443 open to communicate and authenticate users. This test might fail under certain circumstances: <b>you can still install the plugin and give it a try by clicking <a href='index.php?module=config-plugins&action=activate&plugin=myfbconnect&skip_port_check=true&my_post_key={1}'>here</a></b>, but keep in mind that the connection test has returned an invalid response. If:<br /><br />
 <li>you are running on a <b>dedicated or premium hosting</b>, you most probably have access to a port manager or something similar. You can easily open 443 port on TCP protocol by accessing the manager.</li>
 <li>you are running on a <b>shared hosting</b>, or you don't have access to a port manager, you must contact your host and ask for port 443 to be opened for you. This is the only way to let your users login and register with Facebook.</li>
 The installation has been aborted for security reasons.";
 
 // Success
 $l['myfbconnect_success_updated'] = "MyFacebook Connect has been updated correctly from version {1} to {2}. Good job!";
+$l['myfbconnect_success_deleted_reports'] = "The bug report(s) has been deleted successfully.";
 
 // Others
 $l['myfbconnect_select_nofieldsavailable'] = "<span style='color: red'>There are no profile fields available. <b><a href='index.php?module=config-profile_fields'>Create one</a></b> to use this functionality.</span>";

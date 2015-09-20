@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 2.2
+ * @version 2.3
  */
 
 if (!defined('IN_MYBB')) {
@@ -19,7 +19,11 @@ if (!defined("PLUGINLIBRARY")) {
 
 function verify_port_443()
 {
-	global $lang;
+	global $mybb, $lang;
+	
+	if ($mybb->input['skip_port_check']) {
+		return true;
+	}
 	
 	// 3 seconds timeout to check for port 443 is enough
 	$fp = @fsockopen('127.0.0.1', 443, $errno, $errstr, 3);
@@ -27,12 +31,12 @@ function verify_port_443()
 	// Port 443 is closed or blocked
 	if (!$fp) {
 	
-		flash_message($lang->myfbconnect_error_port_443_not_open, 'error');
+		flash_message($lang->sprintf($lang->myfbconnect_error_port_443_not_open, $mybb->post_code), 'error');
 		admin_redirect("index.php?module=config-plugins");
 	    
 	}
 	
-	return false;
+	return true;
 
 }
 
@@ -44,7 +48,7 @@ function myfbconnect_info()
 		'website' => 'https://github.com/Shade-/MyFacebook-Connect',
 		'author' => 'Shade',
 		'authorsite' => '',
-		'version' => '2.2',
+		'version' => '2.3',
 		'compatibility' => '16*,17*,18*',
 		'guid' => 'c5627aab08ec4d321e71afd2b9d02fb2'
 	);
@@ -241,6 +245,20 @@ function myfbconnect_install()
 	// Insert our Facebook columns into the database
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users ADD ({$columns_to_add})");
 	
+	// Add the report table
+	if (!$db->table_exists('myfbconnect_reports')) {
+        $collation = $db->build_create_table_collation();
+        $db->write_query("CREATE TABLE ".TABLE_PREFIX."myfbconnect_reports(
+            id INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            dateline VARCHAR(15) NOT NULL,
+            code VARCHAR(10) NOT NULL,
+            file TEXT,
+            line INT(6) NOT NULL,
+            message TEXT,
+            trace TEXT
+            ) ENGINE=MyISAM{$collation};");
+    }
+	
 	// Insert our templates	   
 	$dir       = new DirectoryIterator(dirname(__FILE__) . '/MyFacebookConnect/templates');
 	$templates = array();
@@ -285,6 +303,7 @@ function myfbconnect_uninstall()
 	
 	// Drop settings
 	$PL->settings_delete('myfbconnect');
+	$db->drop_table('mygpconnect_reports');
 	
 	// Delete our columns
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbavatar`, DROP `fbsex`, DROP `fbdetails`, DROP `fbbio`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
@@ -564,6 +583,36 @@ function myfbconnect_update()
 {
 	global $mybb, $db, $cache, $lang;
 	
+	// Download report
+	if ($mybb->input['export_id'] and $mybb->input['gid'] == myfbconnect_settings_gid()) {
+	
+		$plugin_info = myfbconnect_info();
+	
+		$xml = "<?xml version=\"1.0\" encoding=\"{$lang->settings['charset']}\"?".">\r\n";
+		$xml .= "<report name=\"".$plugin_info['name']."\" version=\"".$plugin_info['version']."\">\r\n";
+		
+		$query = $db->simple_select('myfbconnect_reports', '*', 'id = ' . (int) $mybb->input['export_id']);
+		while ($report = $db->fetch_array($query)) {
+			
+			foreach ($report as $k => $v) {
+				
+				$xml .= "\t\t<{$k}>{$v}</{$k}>\r\n";
+				
+			}
+			
+		}
+		$xml .= "</report>";
+		
+		header("Content-disposition: attachment; filename=" . $plugin_info['name'] . "-report-" . $mybb->input['export_id'] . ".xml");
+		header("Content-type: application/octet-stream");
+		header("Content-Length: ".strlen($xml));
+		header("Pragma: no-cache");
+		header("Expires: 0");
+		echo $xml;
+		
+		exit;
+	}
+	
 	$file = MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_update.php";
 	
 	if (file_exists($file)) {
@@ -581,6 +630,89 @@ function myfbconnect_settings_footer()
 	if ($mybb->input["action"] == "change" and $mybb->request_method != "post") {
 	
 		$gid = myfbconnect_settings_gid();
+		
+		if ($mybb->input['gid'] == $gid) {
+		
+			// Delete reports
+			if ($mybb->input['delete_report']) {
+				
+				switch ($mybb->input['delete_report']) {
+					case 'all':
+						$db->delete_query('myfbconnect_reports');
+						break;
+					default:
+						$db->delete_query('myfbconnect_reports', 'id = ' . (int) $mybb->input['delete_report']);
+				}
+				
+				flash_message($lang->myfbconnect_success_deleted_reports, 'success');
+				admin_redirect('index.php?module=config-settings&action=change&gid=' . $gid);
+				
+			}
+			
+			$reports = array();
+			$query = $db->simple_select('myfbconnect_reports');
+			while ($report = $db->fetch_array($query)) {
+				$reports[] = $report;
+			}
+			
+			if ($reports) {
+			
+				$table = new Table;
+				$table->construct_header($lang->myfbconnect_reports_date, array(
+					'width' => '15%'
+				));
+				$table->construct_header($lang->myfbconnect_reports_code, array(
+					'width' => '5%'
+				));
+				$table->construct_header($lang->myfbconnect_reports_file);
+				$table->construct_header($lang->myfbconnect_reports_line, array(
+					'width' => '5%'
+				));
+				$table->construct_header($lang->options, array(
+					'width' => '10%',
+					'style' => 'text-align: center'
+				));
+				
+				foreach ($reports as $report) {
+				
+					foreach ($report as $k => $val) {
+					
+						if (in_array($k, array('id', 'message', 'trace'))) {
+							continue;
+						}
+						
+						if ($k == 'dateline') {
+							$val = my_date($mybb->settings['dateformat'], $val) . ', ' . my_date($mybb->settings['timeformat'], $val);
+						}
+						
+						$table->construct_cell($val);
+						
+					}
+					
+					$popup = new PopupMenu("item_{$report['id']}", $lang->options);
+					$popup->add_item($lang->myfbconnect_reports_download, 'index.php?module=config-settings&action=change&gid=' . $gid . '&export_id=' . $report['id']);
+					$popup->add_item($lang->myfbconnect_reports_delete, 'index.php?module=config-settings&action=change&gid=' . $gid . '&delete_report=' . $report['id']);
+					
+					$table->construct_cell($popup->fetch(), array(
+						'class' => 'align_center'
+					));
+					
+					$table->construct_row();
+					
+				}
+				
+				$table->construct_cell('<a href="index.php?module=config-settings&action=change&gid=' . $gid . '&delete_report=' . $report['id'] . '" class="button">' . $lang->myfbconnect_reports_delete_all . '</a>', array(
+					'colspan' => 5,
+					'class' => 'align_center'
+					
+				));
+				$table->construct_row();
+				
+				$table->output($lang->myfbconnect_reports);
+				
+			}
+			
+		}
 		
 		if ($mybb->input["gid"] == $gid or !$mybb->input['gid']) {
 			

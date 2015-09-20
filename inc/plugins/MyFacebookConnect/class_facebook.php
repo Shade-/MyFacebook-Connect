@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 2.2
+ * @version 2.3
  */
 
 class MyFacebook
@@ -45,7 +45,7 @@ class MyFacebook
 			require_once MYBB_ROOT . "myfbconnect/src/facebook.php";
 		}
 		catch (Exception $e) {
-			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+			$this->generate_report($e);
 		}
 		
 		if (!$mybb->settings['myfbconnect_appid'] or !$mybb->settings['myfbconnect_appsecret']) {
@@ -125,7 +125,7 @@ class MyFacebook
 		catch (FacebookApiException $e) {
 			
 			// The user should have denied permissions. Still available with check_user() though
-			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+			$this->generate_report($e);
 			
 		}
 		
@@ -194,7 +194,7 @@ class MyFacebook
 			}
 			
 			// The user should have denied posting permissions, but other errors might rise.
-			error($lang->sprintf($lang->myfbconnect_error_report, $e->getMessage()));
+			$this->generate_report($e);
 			
 		}
 		
@@ -763,12 +763,30 @@ class MyFacebook
 	}
 	
 	/**
+	 * Remembers the page where the plugin should redirect to once finishing authenticating
+	 */
+	public function remember_page()
+	{
+		if (!session_id()) {
+			session_start();
+		}
+		
+		$_SESSION['myfbconnect']['return_to_page'] = $_SERVER['HTTP_REFERER'];
+		
+		return true;
+	}
+	
+	/**
 	 * Redirects the user to the page he came from
 	 */
 	public function redirect($url = '', $title = '', $message = '')
 	{
-		if (!$url and $_SERVER['HTTP_REFERER']) {
-			$url = $_SERVER['HTTP_REFERER'];
+		if (!session_id()) {
+			session_start();
+		}
+		
+		if (!$url and $_SESSION['myfbconnect']['return_to_page']) {
+			$url = $_SESSION['myfbconnect']['return_to_page'];
 		}
 		else {
 			$url = "index.php";
@@ -782,6 +800,29 @@ class MyFacebook
 		}
 		
 		redirect($url, $message, $title);
+		
+		return true;
+	}
+	
+	/**
+	 * Generates a bug report and inserts it into the database and shows an error to the user
+	 */
+	public function generate_report($e)
+	{
+		global $db, $lang;
+		
+		$report = array(
+			'dateline' => TIME_NOW,
+			'code' => (int) $e->getCode(),
+			'file' => $db->escape_string($e->getFile()),
+			'line' => (int) $e->getLine(),
+			'message' => $db->escape_string($e->getMessage()),
+			'trace' => $db->escape_string($e->getTraceAsString())
+		);
+		
+		$db->insert_query('myfbconnect_reports', $report);
+		
+		error($lang->myfbconnect_error_report_generated);
 		
 		return true;
 	}
