@@ -1,6 +1,6 @@
 ## MyFacebook Connect
 
-> **Latest version** 2.2  
+> **Latest version** 2.3  
 > **Dependencies** [PluginLibrary](http://mods.mybb.com/view/PluginLibrary), PHP cURL with https module enabled, port 443 opened on your server  
 > **Donations** [here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=89NU4PS5BZZQE)
 
