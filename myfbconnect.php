@@ -142,7 +142,7 @@ if ($mybb->input['action'] == 'register') {
 	}
 	
 	$options = '';
-	$settingsToBuild = '';
+	$settingsToBuild = array();
 	
 	// Checking if we want to sync that stuff (admin)
 	$settingsToCheck = array(
