@@ -303,7 +303,7 @@ function myfbconnect_uninstall()
 	
 	// Drop settings
 	$PL->settings_delete('myfbconnect');
-	$db->drop_table('mygpconnect_reports');
+	$db->drop_table('myfbconnect_reports');
 	
 	// Delete our columns
 	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbavatar`, DROP `fbsex`, DROP `fbdetails`, DROP `fbbio`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
@@ -701,7 +701,7 @@ function myfbconnect_settings_footer()
 					
 				}
 				
-				$table->construct_cell('<a href="index.php?module=config-settings&action=change&gid=' . $gid . '&delete_report=' . $report['id'] . '" class="button">' . $lang->myfbconnect_reports_delete_all . '</a>', array(
+				$table->construct_cell('<a href="index.php?module=config-settings&action=change&gid=' . $gid . '&delete_report=all" class="button">' . $lang->myfbconnect_reports_delete_all . '</a>', array(
 					'colspan' => 5,
 					'class' => 'align_center'
 					
