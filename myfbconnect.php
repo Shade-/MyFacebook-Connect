@@ -20,7 +20,7 @@ if (!$mybb->settings['myfbconnect_enabled']) {
 }
 
 // Registrations are disabled
-if ($mybb->settings['disableregs'] == 1) {
+if ($mybb->settings['disableregs'] == 1 and !$mybb->settings['myfbconnect_keeprunning']) {
 
 	if (!$lang->registrations_disabled) {
 		$lang->load("member");
@@ -42,8 +42,9 @@ if (!in_array($mybb->input['action'], explode(',', ALLOWABLE_PAGE))) {
 // Begin the authenticating process
 if ($mybb->input['action'] == 'login') {
 	
+	// Already logged in? Redirect to the homepage
 	if ($mybb->user['uid']) {
-		error($lang->myfbconnect_error_alreadyloggedin);
+		header('Location: index.php');
 	}
 	
 	// Remember page to ensure we redirect to the previous page after the user logs in
@@ -55,21 +56,28 @@ if ($mybb->input['action'] == 'login') {
 // Receive the incoming data from Facebook and evaluate the user
 if ($mybb->input['action'] == 'do_login') {
 	
-	// Already logged in? You should not use this
+	// Already logged in? Redirect to the homepage
 	if ($mybb->user['uid']) {
-		error($lang->myfbconnect_error_alreadyloggedin);
+		header('Location: index.php');
 	}
 	
+	// Save the incoming access token
+	$FacebookConnect->save_token();
+	
 	// Attempt to get an user if authenticated
-	$user = $FacebookConnect->get_user();	
+	$user = $FacebookConnect->get_user();
+		
 	if ($user) {
 	
-		$process = $FacebookConnect->process($user);
+		$process = $FacebookConnect->process();
 		
 		if ($process['error']) {
+			
 			$errors = $process['error'];
 			$mybb->input['action'] = 'register';
+			
 		}
+		
 	}
 	
 }
@@ -77,42 +85,37 @@ if ($mybb->input['action'] == 'do_login') {
 // Register page fallback
 if ($mybb->input['action'] == 'register') {
 	
-	// Already logged in? You should not use this
+	// Already logged in? Redirect to the homepage
 	if ($mybb->user['uid']) {
-		error($lang->myfbconnect_error_alreadyloggedin);
+		header('Location: index.php');
 	}
 	
-	if (!$FacebookConnect->check_user()) {
-		$FacebookConnect->authenticate();
-	}
-	else {
-		$user = $FacebookConnect->get_user();
-	}
+	$user = $FacebookConnect->get_user();
 	
 	// Came from our reg page
 	if ($mybb->request_method == "post") {
 	
-		$newuser = array();
+		$newuser = [];
 		$newuser['name'] = $mybb->input['username'];
 		$newuser['email'] = $mybb->input['email'];
 		
-		$settingsToAdd = array();
-		$settingsToCheck = array(
+		$settings_to_add = [];
+		$settings_to_check = [
 			"fbavatar",
 			"fbsex",
 			"fbdetails",
 			"fbbio",
 			"fbbday",
 			"fblocation"
-		);
+		];
 		
-		foreach ($settingsToCheck as $setting) {
+		foreach ($settings_to_check as $setting) {
 		
 			if ($mybb->input[$setting] == 1) {
-				$settingsToAdd[$setting] = 1;
+				$settings_to_add[$setting] = 1;
 			}
 			else {
-				$settingsToAdd[$setting] = 0;
+				$settings_to_add[$setting] = 0;
 			}
 			
 		}
@@ -123,17 +126,17 @@ if ($mybb->input['action'] == 'register') {
 		// Insert options and extra data and login
 		if (!$user['error']) {
 		
-			$db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user['uid']);
+			$db->update_query('users', $settings_to_add, 'uid = ' . (int) $user['uid']);
 			
 			// Sync
-			$newUser = array_merge($user, $settingsToAdd);
-			$FacebookConnect->sync($newUser);
+			$FacebookConnect->sync(array_merge($user, $settings_to_add));
 			
 			// Login
 			$FacebookConnect->login($user);
 			
 			// Redirect
-			$FacebookConnect->redirect($mybb->input['redUrl'], $lang->sprintf($lang->myfbconnect_redirect_title, $user['username']), $lang->myfbconnect_redirect_registered);
+			$FacebookConnect->redirect((string) $mybb->input['redirect_url'], $lang->sprintf($lang->myfbconnect_redirect_title, $user['username']), $lang->myfbconnect_redirect_registered);
+			
 		}
 		else {
 			$errors = inline_error($user['error']);
@@ -142,29 +145,29 @@ if ($mybb->input['action'] == 'register') {
 	}
 	
 	$options = '';
-	$settingsToBuild = array();
+	$settings_to_build = [];
 	
 	// Checking if we want to sync that stuff (admin)
-	$settingsToCheck = array(
+	$settings_to_check = [
 		'fbavatar',
 		'fbbday',
 		'fbsex',
 		'fbdetails',
 		'fbbio',
 		'fblocation'
-	);
+	];
 	
-	foreach ($settingsToCheck as $setting) {
+	foreach ($settings_to_check as $setting) {
 	
 		$tempKey = 'myfbconnect_' . $setting;
 		
 		if ($mybb->settings[$tempKey]) {
-			$settingsToBuild[] = $setting;
+			$settings_to_build[] = $setting;
 		}
 		
 	}
 	
-	foreach ($settingsToBuild as $setting) {
+	foreach ($settings_to_build as $setting) {
 	
 		$tempKey = 'myfbconnect_settings_' . $setting;
 		$checked = " checked=\"checked\"";
@@ -179,13 +182,16 @@ if ($mybb->input['action'] == 'register') {
 	if ($mybb->input['username']) {
 		$user['name'] = htmlspecialchars_uni($mybb->input['username']);
 	}
+	
 	if ($mybb->input['email']) {
 		$user['email'] = htmlspecialchars_uni($mybb->input['email']);
 	}
 	
+	$lang->myfbconnect_register_basic_info = $lang->sprintf($lang->myfbconnect_register_basic_info, $user['id']);
+	
 	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$user['name']}\" />";
 	$email = "<input type=\"text\" class=\"textbox\" name=\"email\" value=\"{$user['email']}\" />";
-	$redirectUrl = "<input type=\"hidden\" name=\"redUrl\" value=\"{$_SERVER['HTTP_REFERER']}\" />";
+	$redirect_url = "<input type=\"hidden\" name=\"redirect_url\" value=\"{$_SERVER['HTTP_REFERER']}\" />";
 	
 	// Output our page
 	eval("\$fbregister = \"" . $templates->get("myfbconnect_register") . "\";");

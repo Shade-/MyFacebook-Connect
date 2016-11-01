@@ -164,6 +164,37 @@ class MyFacebook_Update
 			
 		}
 		
+		// 3.0
+		if (version_compare($this->old_version, '3.0', "<")) {
+			
+			$drop_settings[] = 'postonwall';
+			$drop_settings[] = 'postonwall_message';
+			
+			$new_settings[] = array(
+				"name" => "myfbconnect_keeprunning",
+				"title" => $db->escape_string($lang->setting_myfbconnect_keeprunning),
+				"description" => $db->escape_string($lang->setting_myfbconnect_keeprunning_desc),
+				"optionscode" => "yesno",
+				"value" => 0,
+				"disporder" => 7,
+				"gid" => $gid
+			);
+			
+			// 3.0 introduces major changes in templates, so at least we try to apply them with nice and old search&replace patterns
+			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
+			find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote(' &mdash; <a href="{$mybb->settings[\'bburl\']}/myfbconnect.php?action=login">{$lang->myfbconnect_login}</a>') . '#i', '{$facebook_login}');
+			find_replace_templatesets('myfbconnect_usercp_settings_linkprofile', '#' . preg_quote('<a href="usercp.php?action=fblink">{$lang->myfbconnect_link}</a>') . '#i', '<a href="usercp.php?action=myfbconnect_link"><img src="images/social/facebook.png" /></a>');
+			find_replace_templatesets('myfbconnect_register', '#' . preg_quote('{$redirectUrl}') . '#i', '{$redirect_url}');
+			find_replace_templatesets('myfbconnect_register', '#' . preg_quote('{$lang->myfbconnect_register_basicinfo}') . '#i', '{$lang->myfbconnect_register_basic_info}');
+			find_replace_templatesets('myfbconnect_usercp_menu', '#' . preg_quote('<td class="tcat">') . '#i', '<td class="tcat tcat_menu">');
+			find_replace_templatesets('myfbconnect_usercp_menu', '#' . preg_quote('{$collapsedimg[\'usercpfacebook\']}.gif') . '#i', '{$collapsedimg[\'usercpfacebook\']}.png');
+			find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" class="button" value="{$lang->myfbconnect_settings_save}" />') . '#i', '{$save} ');
+			
+			// New column definition to standardize and anonymize identifiers
+			$db->modify_column('users', 'myfb_uid', 'VARCHAR(32) NOT NULL DEFAULT 0');
+			
+		}
+		
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
 		}
