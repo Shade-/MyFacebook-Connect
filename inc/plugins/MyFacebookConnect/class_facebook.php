@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 3.0
+ * @version 3.1
  */
 
 class MyFacebook
@@ -333,7 +333,7 @@ class MyFacebook
 		}
 		
 		$update = [
-			"myfb_uid" => md5((int) $id)
+			"myfb_uid" => md5($id)
 		];
 		
 		$db->update_query("users", $update, "uid = {$user['uid']}");
@@ -396,17 +396,28 @@ class MyFacebook
 			error($lang->myfbconnect_error_no_id_provided);
 		}
 		
-		$sql = '';
+		$extra_sql = '';
 		if ($this->user['email']) {
-			$sql = " OR email = '" . $db->escape_string($this->user['email']) . "'";
+			$extra_sql .= " OR email = '" . $db->escape_string($this->user['email']) . "'";
 		}
 		
-		$hashed_id = md5((int) $this->user['id']);
+		/*
+		* Solves a confirmed security issue discussed in http://www.mybboost.com/thread-release-myfacebook-connect-3-0
+		* The user identifier is casted as int but PHP automatically scales it down to a 2 GB value on 32-bit systems
+		* The already-with-us check fails and treats the authenticated user as another account, making it vulnerable.
+		* DO NOT CAST AS (int) THIS USER IDENTIFIER!
+		*/
+		$hashed_id = md5($this->user['id']);
 		
 		// Let's see if you are already with us
-		$query   = $db->simple_select("users", "*", "myfb_uid = '{$hashed_id}' OR myfb_uid = '{$this->user['id']}'{$sql}", [
-			"limit" => 1
-		]);
+		$query   = $db->simple_select(
+			"users",
+			"*",
+			"myfb_uid = '{$hashed_id}' OR myfb_uid = '{$this->user['id']}'{$extra_sql}",
+			[
+				"limit" => 1
+			]
+		);
 		$account = $db->fetch_array($query);
 		
 		$message = $lang->myfbconnect_redirect_logged_in;
@@ -495,7 +506,7 @@ class MyFacebook
 		
 		// No Facebook ID? Sync it too!
 		if (!$user['myfb_uid'] and $this->user['id']) {
-			$update['myfb_uid'] = md5((int) $this->user['id']);
+			$update['myfb_uid'] = md5($this->user['id']);
 		}
 		
 		// Avatar
