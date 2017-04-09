@@ -384,12 +384,8 @@ class MyFacebook
 		global $mybb, $db, $session, $lang;
 		
 		// Just verified allowed?
-		if ($mybb->settings['myfbconnect_verifiedonly']) {
-			
-			if ($this->user['verified'] !== 1) {
-				error($lang->myfbconnect_error_verified_only);
-			}
-			
+		if ($mybb->settings['myfbconnect_verifiedonly'] and $this->user['verified'] !== 1) {
+			error($lang->myfbconnect_error_verified_only);
 		}
 		
 		if (!$this->user['id']) {
@@ -735,16 +731,6 @@ class MyFacebook
 	}
 	
 	/**
-	 * Remembers the page where the plugin should redirect to once finishing authenticating
-	 */
-	public function remember_page()
-	{	
-		$_SESSION['myfbconnect']['return_to_page'] = $_SERVER['HTTP_REFERER'];
-		
-		return true;
-	}
-	
-	/**
 	 * Redirects the user to the page he came from
 	 */
 	public function redirect($url = '', $title = '', $message = '')
@@ -787,17 +773,6 @@ class MyFacebook
 		$extra = ($mybb->usergroup['cancp']) ? $lang->myfbconnect_error_report_generated_admin : $lang->myfbconnect_error_report_generated_user;
 		
 		return error($lang->sprintf($lang->myfbconnect_error_report_generated, $e->getMessage(), $extra));
-	}
-	
-	/**
-	 * Debugs any type of data, printing out an array and immediately killing the execution of the currently running script
-	 */
-	public function debug($data)
-	{	
-		echo "<pre>";
-		print_r($data);
-		echo "</pre>";
-		exit;
 	}
 	
 }

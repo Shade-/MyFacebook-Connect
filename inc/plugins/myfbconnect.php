@@ -352,7 +352,6 @@ if ($mybb->settings['myfbconnect_enabled']) {
 
 function myfbconnect_global()
 {
-	
 	global $mybb, $lang, $templatelist;
 	
 	if ($templatelist) {
@@ -382,11 +381,26 @@ function myfbconnect_global()
 		$templatelist[] = 'myfbconnect_usercp_showsettings';
 		
 	}
-	
+
 	$templatelist = implode(',', array_filter($templatelist));
-		
-	
+
 	$lang->load('myfbconnect');
+	
+	// Determine the current page URL and assign it to a session variable in order to "remember" the page
+	// and redirect back to it when finished authenticating
+	$querystring = ($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
+	
+	$pageURL = $mybb->settings['bburl'] . '/' . THIS_SCRIPT . $querystring;
+	
+	if (strpos($pageURL, 'myfbconnect.php') !== false) {
+		return true;
+	}
+
+	if (!session_id()) {
+		session_start();
+	}
+
+	$_SESSION['myfbconnect']['return_to_page'] = $pageURL;
 	
 }
 

@@ -47,8 +47,6 @@ if ($mybb->input['action'] == 'login') {
 		header('Location: index.php');
 	}
 	
-	// Remember page to ensure we redirect to the previous page after the user logs in
-	$FacebookConnect->remember_page();
 	$FacebookConnect->authenticate();
 	
 }
@@ -92,6 +90,15 @@ if ($mybb->input['action'] == 'register') {
 	
 	$user = $FacebookConnect->get_user();
 	
+	$settings_to_check = [
+		'fbavatar',
+		'fbbday',
+		'fbsex',
+		'fbdetails',
+		'fbbio',
+		'fblocation'
+	];
+	
 	// Came from our reg page
 	if ($mybb->request_method == "post") {
 	
@@ -100,14 +107,6 @@ if ($mybb->input['action'] == 'register') {
 		$newuser['email'] = $mybb->input['email'];
 		
 		$settings_to_add = [];
-		$settings_to_check = [
-			"fbavatar",
-			"fbsex",
-			"fbdetails",
-			"fbbio",
-			"fbbday",
-			"fblocation"
-		];
 		
 		foreach ($settings_to_check as $setting) {
 		
@@ -147,16 +146,6 @@ if ($mybb->input['action'] == 'register') {
 	$options = '';
 	$settings_to_build = [];
 	
-	// Checking if we want to sync that stuff (admin)
-	$settings_to_check = [
-		'fbavatar',
-		'fbbday',
-		'fbsex',
-		'fbdetails',
-		'fbbio',
-		'fblocation'
-	];
-	
 	foreach ($settings_to_check as $setting) {
 	
 		$tempKey = 'myfbconnect_' . $setting;
@@ -191,10 +180,9 @@ if ($mybb->input['action'] == 'register') {
 	
 	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$user['name']}\" />";
 	$email = "<input type=\"text\" class=\"textbox\" name=\"email\" value=\"{$user['email']}\" />";
-	$redirect_url = "<input type=\"hidden\" name=\"redirect_url\" value=\"{$_SERVER['HTTP_REFERER']}\" />";
 	
-	// Output our page
-	eval("\$fbregister = \"" . $templates->get("myfbconnect_register") . "\";");
-	output_page($fbregister);
+	// Show the registration page
+	eval("\$register = \"" . $templates->get("myfbconnect_register") . "\";");
+	output_page($register);
 	
 }
