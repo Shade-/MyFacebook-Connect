@@ -510,7 +510,7 @@ class MyFacebook
 			
 			list($maxwidth, $maxheight) = explode('x', my_strtolower($mybb->settings['maxavatardims']));
 			
-			$update["avatar"]     = $db->escape_string("http://graph.facebook.com/{$this->user['id']}/picture?width={$maxwidth}&height={$maxheight}");
+			$update["avatar"]     = $db->escape_string("https://graph.facebook.com/{$this->user['id']}/picture?width={$maxwidth}&height={$maxheight}");
 			$update["avatartype"] = "remote";
 			
 			// Copy the avatar to the local server (work around remote URL access disabled for getimagesize)
