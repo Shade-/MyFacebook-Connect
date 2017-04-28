@@ -362,6 +362,8 @@ function myfbconnect_global()
 		$templatelist = [];
 	}
 	
+	$templatelist[] = 'myfbconnect_login_button';
+	
 	if (THIS_SCRIPT == 'myfbconnect.php') {
 	
 		$templatelist[] = 'myfbconnect_register';
