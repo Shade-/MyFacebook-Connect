@@ -5,4 +5,4 @@
 
 MyFacebook Connect is the ultimate solution for bridging between MyBB and Facebook, featuring smooth login and registration.
 
-For further informations, read the [release post](http://www.mybboost.com/thread-myfacebook-connect-3-1).
+For further informations, read the [release post](http://www.mybboost.com/thread-release-myfacebook-connect-3-1).
