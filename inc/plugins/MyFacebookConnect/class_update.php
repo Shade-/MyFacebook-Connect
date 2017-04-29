@@ -172,8 +172,8 @@ class MyFacebook_Update
 			
 			$new_settings[] = array(
 				"name" => "myfbconnect_keeprunning",
-				"title" => $db->escape_string($lang->setting_myfbconnect_keeprunning),
-				"description" => $db->escape_string($lang->setting_myfbconnect_keeprunning_desc),
+				"title" => $db->escape_string($lang->setting_myfbconnect_keep_running),
+				"description" => $db->escape_string($lang->setting_myfbconnect_keep_running_desc),
 				"optionscode" => "yesno",
 				"value" => 0,
 				"disporder" => 7,
