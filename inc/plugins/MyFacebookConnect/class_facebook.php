@@ -384,7 +384,7 @@ class MyFacebook
 		global $mybb, $db, $session, $lang;
 		
 		// Just verified allowed?
-		if ($mybb->settings['myfbconnect_verifiedonly'] and $this->user['verified'] !== 1) {
+		if ($mybb->settings['myfbconnect_verifiedonly'] and $this->user['verified'] != 1) {
 			error($lang->myfbconnect_error_verified_only);
 		}
 		
