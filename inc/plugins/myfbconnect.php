@@ -48,7 +48,7 @@ function myfbconnect_info()
 		'website' => 'http://www.mybboost.com/forum-myfacebook-connect',
 		'author' => 'Shade',
 		'authorsite' => 'http://www.mybboost.com',
-		'version' => '3.1',
+		'version' => '3.2',
 		'compatibility' => '16*,18*',
 	];
 }
