@@ -124,7 +124,7 @@ class MyFacebook
 		$helper = $this->facebook->getRedirectLoginHelper();
 		
 		try {
-			$access_token = $helper->getAccessToken();
+			$access_token = $helper->getAccessToken($this->fallback);
 		}
 		catch(Facebook\Exceptions\FacebookSDKException $e) {
 			$this->generate_report($e);
