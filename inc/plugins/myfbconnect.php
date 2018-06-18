@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <legend_k@live.it>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 3.0
+ * @version 3.3
  */
 
 if (!defined('IN_MYBB')) {
@@ -173,19 +173,6 @@ function myfbconnect_install()
 			'value' => '1'
 		],
 		
-		// Bio
-		'fbbio' => [
-			'title' => $lang->setting_myfbconnect_fbbio,
-			'description' => $lang->setting_myfbconnect_fbbio_desc,
-			'value' => '1'
-		],
-		'fbbiofield' => [
-			'title' => $lang->setting_myfbconnect_fbbiofield,
-			'description' => $lang->setting_myfbconnect_fbbiofield_desc,
-			'optionscode' => 'text',
-			'value' => '2'
-		],
-		
 		// Sex
 		'fbsex' => [
 			'title' => $lang->setting_myfbconnect_fbsex,
@@ -213,7 +200,7 @@ function myfbconnect_install()
 		],
 	]);
 	
-	$columns_to_check = ['fbavatar', 'fbsex', 'fbdetails', 'fbbio', 'fbbday', 'fblocation', 'VARCHAR(32) NOT NULL DEFAULT 0' => 'myfb_uid'];
+	$columns_to_check = ['fbavatar', 'fbsex', 'fbdetails', 'fbbday', 'fblocation', 'VARCHAR(32) NOT NULL DEFAULT 0' => 'myfb_uid'];
 	$columns_to_add = '';
 	
 	// Check if columns are already there (this prevents duplicate installation errors)
@@ -299,7 +286,20 @@ function myfbconnect_uninstall()
 	$db->drop_table('myfbconnect_reports');
 	
 	// Delete our columns
-	$db->query("ALTER TABLE " . TABLE_PREFIX . "users DROP `fbavatar`, DROP `fbsex`, DROP `fbdetails`, DROP `fbbio`, DROP `fbbday`, DROP `fblocation`, DROP `myfb_uid`");
+	$columns = [
+		'fbavatar',
+		'fbsex',
+		'fbdetails',
+		'fbbday',
+		'fblocation',
+		'myfb_uid'
+	];
+
+	foreach ($columns as $field) {
+		if ($db->field_exists($field, 'users')) {
+			$db->drop_column('users', $field);
+		}
+	}
 	
 	// Delete the plugin from cache
 	$info         = myfbconnect_info();
@@ -457,7 +457,6 @@ function myfbconnect_usercp()
 		'fbbday',
 		'fbsex',
 		'fbdetails',
-		'fbbio',
 		'fblocation'
 	];
 	
@@ -774,7 +773,6 @@ function myfbconnect_settings_footer()
 		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_subject"), /1/, true);
 		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_message"), /1/, true);
 		new Peeker($(".setting_myfbconnect_passwordpm"), $("#row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
-		new Peeker($(".setting_myfbconnect_fbbio"), $("#row_setting_myfbconnect_fbbiofield"), /1/, true);
 		new Peeker($(".setting_myfbconnect_fblocation"), $("#row_setting_myfbconnect_fblocationfield"), /1/, true);
 		new Peeker($(".setting_myfbconnect_fbdetails"), $("#row_setting_myfbconnect_fbdetailsfield"), /1/, true);
 		new Peeker($(".setting_myfbconnect_fbsex"), $("#row_setting_myfbconnect_fbsexfield"), /1/, true);
@@ -798,7 +796,6 @@ function myfbconnect_settings_footer()
 		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_subject"), /1/, true);
 		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_message"), /1/, true);
 		new Peeker($$(".setting_myfbconnect_passwordpm"), $("row_setting_myfbconnect_passwordpm_fromid"), /1/, true);
-		new Peeker($$(".setting_myfbconnect_fbbio"), $("row_setting_myfbconnect_fbbiofield"), /1/, true);
 		new Peeker($$(".setting_myfbconnect_fblocation"), $("row_setting_myfbconnect_fblocationfield"), /1/, true);
 		new Peeker($$(".setting_myfbconnect_fbdetails"), $("row_setting_myfbconnect_fbdetailsfield"), /1/, true);
 		new Peeker($$(".setting_myfbconnect_fbsex"), $("row_setting_myfbconnect_fbsexfield"), /1/, true);
@@ -884,7 +881,7 @@ function myfbconnect_build_wol_location(&$plugin_array)
 	return $plugin_array;
 }
 
-$GLOBALS['replace_custom_fields'] = ['fblocationfield', 'fbbiofield', 'fbdetailsfield', 'fbsexfield'];
+$GLOBALS['replace_custom_fields'] = ['fblocationfield', 'fbdetailsfield', 'fbsexfield'];
 
 function myfbconnect_settings_saver()
 {

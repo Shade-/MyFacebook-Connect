@@ -436,7 +436,7 @@ class MyFacebook
 			else {
 			
 				// Set some defaults
-				$toCheck = ['fbavatar', 'fbbday', 'fbsex', 'fbdetails', 'fbbio', 'fblocation'];
+				$toCheck = ['fbavatar', 'fbbday', 'fbsex', 'fbdetails', 'fblocation'];
 				foreach ($toCheck as $setting) {
 				
 					$tempKey = 'myfbconnect_' . $setting;
@@ -485,7 +485,6 @@ class MyFacebook
 		
 		$detailsid  = "fid" . (int) $mybb->settings['myfbconnect_fbdetailsfield'];
 		$locationid = "fid" . (int) $mybb->settings['myfbconnect_fblocationfield'];
-		$bioid      = "fid" . (int) $mybb->settings['myfbconnect_fbbiofield'];
 		$sexid      = "fid" . (int) $mybb->settings['myfbconnect_fbsexfield'];
 		
 		if (!$this->user) {
@@ -600,15 +599,6 @@ class MyFacebook
 			
 			if ($db->field_exists($detailsid, "userfields")) {
 				$userfield[$detailsid] = $db->escape_string($this->user['name']);
-			}
-			
-		}
-		
-		// Bio
-		if ($user['fbbio'] and $this->user['about'] and $mybb->settings['myfbconnect_fbbio']) {
-			
-			if ($db->field_exists($bioid, "userfields")) {
-				$userfield[$bioid] = $db->escape_string(htmlspecialchars_decode(my_substr($this->user['about'], 0, 400, true)));
 			}
 			
 		}

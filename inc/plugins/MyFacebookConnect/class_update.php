@@ -194,6 +194,18 @@ class MyFacebook_Update
 			$db->modify_column('users', 'myfb_uid', 'VARCHAR(32) NOT NULL DEFAULT 0');
 			
 		}
+
+		// 3.3
+		if (version_compare($this->old_version, '3.3', "<")) {
+
+			if ($db->field_exists('fbbio', 'users')) {
+				$db->drop_column('users', 'fbbio');
+			}
+
+			$drop_settings[] = 'fbbio';
+			$drop_settings[] = 'fbbiofield';
+			
+		}
 		
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
@@ -217,28 +229,6 @@ class MyFacebook_Update
 		admin_redirect($_SERVER['HTTP_REFERER']);
 		
 	}
-	
-	/**
-	 * Debugs any type of data, printing out an array and immediately killing the execution of the currently running script
-	 */
-	public function debug($data)
-	{
-		// Fallback for arrays
-		if (is_array($data)) {
-			$data = array_map('htmlspecialchars_uni', $data);
-		}
-		// Fallback for strings
-		else if (is_string($data)) {
-			$data = htmlspecialchars_uni($data);
-		}
-		
-		echo "<pre>";
-		print_r($data);
-		echo "</pre>";
-		
-		exit;
-	}
-	
 }
 
 // Direct init on call
