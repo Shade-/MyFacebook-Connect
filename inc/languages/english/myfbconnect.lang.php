@@ -28,7 +28,6 @@ $l['myfbconnect_settings_save'] = "Save";
 $l['myfbconnect_settings_unlink'] = "Unlink my account";
 $l['myfbconnect_settings_fbavatar'] = "Avatar and cover";
 $l['myfbconnect_settings_fbsex'] = "Sex";
-$l['myfbconnect_settings_fbbio'] = "Bio";
 $l['myfbconnect_settings_fbdetails'] = "Name and last name";
 $l['myfbconnect_settings_fbbday'] = "Birthday";
 $l['myfbconnect_settings_fblocation'] = "Location";

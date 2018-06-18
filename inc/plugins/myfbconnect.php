@@ -45,10 +45,10 @@ function myfbconnect_info()
 	return [
 		'name' => 'MyFacebook Connect',
 		'description' => 'Integrates MyBB with Facebook, featuring login and registration.',
-		'website' => 'http://www.mybboost.com/forum-myfacebook-connect',
+		'website' => 'https://www.mybboost.com/forum-myfacebook-connect',
 		'author' => 'Shade',
-		'authorsite' => 'http://www.mybboost.com',
-		'version' => '3.2',
+		'authorsite' => 'https://www.mybboost.com',
+		'version' => '3.3',
 		'compatibility' => '16*,18*',
 	];
 }
@@ -119,6 +119,12 @@ function myfbconnect_install()
 			'title' => $lang->setting_myfbconnect_keep_running,
 			'description' => $lang->setting_myfbconnect_keep_running_desc,
 			'value' => '0'
+		],
+		'scopes' => [
+			'title' => $lang->setting_myfbconnect_scopes,
+			'description' => $lang->setting_myfbconnect_scopes_desc,
+			'value' => 'user_location,user_birthday',
+			'optionscode' => 'text'
 		],
 		
 		// PM delivery
@@ -902,6 +908,8 @@ function myfbconnect_settings_saver()
 		}
 		
 		$mybb->input['upsetting']['myfbconnect_usergroup'] = $mybb->input['myfbconnect_usergroup_select'];
+		
+		$mybb->input['upsetting']['myfbconnect_scopes'] = trim(implode(',', $mybb->input['myfbconnect_scopes_select']));
 			
 	}
 }
@@ -913,15 +921,13 @@ function myfbconnect_settings_replacer($args)
 	if ($page->active_action != "settings" and $mybb->input['action'] != "change" and $mybb->input['gid'] != myfbconnect_settings_gid()) {
 		return false;
 	}
-        
-	$query = $db->simple_select('profilefields', 'name, fid');
-	
+    
+    // Fields
 	$profilefields = ['' => ''];
-	
+	$query = $db->simple_select('profilefields', 'name, fid');
 	while ($field = $db->fetch_array($query)) {
 		$profilefields[$field['fid']] = $field['name'];
 	}
-	$db->free_result($query);
 	
 	foreach ($replace_custom_fields as $setting) {
 	
@@ -943,13 +949,27 @@ function myfbconnect_settings_replacer($args)
 		}
 		
 	}
-		
+	
+	// Usergroups
 	if ($args['row_options']['id'] == "row_setting_myfbconnect_usergroup") {
 			
 		$tempKey = 'myfbconnect_usergroup';
-			
-		// Replace the textarea with a cool selectbox
 		$args['content'] = $form->generate_group_select($tempKey."_select", [$mybb->settings[$tempKey]]);
+			
+	}
+	
+	// Scopes
+	if ($args['row_options']['id'] == "row_setting_myfbconnect_scopes") {
+			
+		$tempKey = 'myfbconnect_scopes';
+		$list = [
+			'user_location' => 'Location',
+			'user_birthday' => 'Birthday'
+		];
+
+		$selected = explode(',', $mybb->settings[$tempKey]);
+		
+		$args['content'] = $form->generate_select_box($tempKey."_select[]", $list, $selected, ['multiple' => true]);
 			
 	}
 }

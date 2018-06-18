@@ -67,7 +67,7 @@ class MyFacebook_Update
 	{
 		global $db, $mybb, $cache, $lang;
 		
-		$new_settings = $drop_settings = array();
+		$new_settings = $drop_settings = [];
 				
 		// Get the gid
 		$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
@@ -84,7 +84,7 @@ class MyFacebook_Update
 		// 1.0.3
 		if (version_compare($this->old_version, '1.0.3', "<")) {
 			
-			$new_settings[] = array(
+			$new_settings[] = [
 				"name" => "myfbconnect_verifiedonly",
 				"title" => $db->escape_string($lang->setting_myfbconnect_verifiedonly),
 				"description" => $db->escape_string($lang->setting_myfbconnect_verifiedonly_desc),
@@ -92,14 +92,14 @@ class MyFacebook_Update
 				"value" => 0,
 				"disporder" => 7,
 				"gid" => $gid
-			);
+			];
 			
 		}
 		
 		// 1.1
 		if (version_compare($this->old_version, '1.1', "<")) {
 			
-			$new_settings[] = array(
+			$new_settings[] = [
 				"name" => "myfbconnect_fbavatar",
 				"title" => $db->escape_string($lang->setting_myfbconnect_fbavatar),
 				"description" => $db->escape_string($lang->setting_myfbconnect_fbavatar_desc),
@@ -107,7 +107,7 @@ class MyFacebook_Update
 				"value" => 1,
 				"disporder" => 12,
 				"gid" => $gid
-			);
+			];
 			
 			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
 			find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');
@@ -119,7 +119,7 @@ class MyFacebook_Update
 			
 			$drop_settings[] = "requestpublishingperms";
 			
-			$new_settings[] = array(
+			$new_settings[] = [
 				"name" => "myfbconnect_postonwall",
 				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall),
 				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_desc),
@@ -127,9 +127,9 @@ class MyFacebook_Update
 				"value" => 0,
 				"disporder" => 30,
 				"gid" => $gid
-			);
+			];
 			
-			$new_settings[] = array(
+			$new_settings[] = [
 				"name" => "myfbconnect_postonwall_message",
 				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall_message),
 				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_message_desc),
@@ -137,7 +137,7 @@ class MyFacebook_Update
 				"value" => $lang->myfbconnect_default_postonwall_message,
 				"disporder" => 31,
 				"gid" => $gid
-			);
+			];
 			
 			// Let's at least try to change that, anyway, 2.0 has backward compatibility so it doesn't matter if this fails
 			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
@@ -170,7 +170,7 @@ class MyFacebook_Update
 			$drop_settings[] = 'postonwall';
 			$drop_settings[] = 'postonwall_message';
 			
-			$new_settings[] = array(
+			$new_settings[] = [
 				"name" => "myfbconnect_keeprunning",
 				"title" => $db->escape_string($lang->setting_myfbconnect_keep_running),
 				"description" => $db->escape_string($lang->setting_myfbconnect_keep_running_desc),
@@ -178,7 +178,7 @@ class MyFacebook_Update
 				"value" => 0,
 				"disporder" => 7,
 				"gid" => $gid
-			);
+			];
 			
 			// 3.0 introduces major changes in templates, so at least we try to apply them with nice and old search&replace patterns
 			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
@@ -205,6 +205,16 @@ class MyFacebook_Update
 			$drop_settings[] = 'fbbio';
 			$drop_settings[] = 'fbbiofield';
 			
+			$new_settings[] = [
+				"name" => "myfbconnect_scopes",
+				"title" => $db->escape_string($lang->setting_myfbconnect_scopes),
+				"description" => $db->escape_string($lang->setting_myfbconnect_scopes_desc),
+				"optionscode" => "text",
+				"value" => "user_location,user_birthday",
+				"disporder" => 8,
+				"gid" => $gid
+			];
+			
 		}
 		
 		if ($new_settings) {
@@ -218,15 +228,15 @@ class MyFacebook_Update
 		rebuild_settings();
 		
 		// Update the current version number and redirect
-		$this->plugins[$this->info['name']] = array(
+		$this->plugins[$this->info['name']] = [
 			'title' => $this->info['name'],
 			'version' => $this->version
-		);
+		];
 		
 		$cache->update('shade_plugins', $this->plugins);
 		
 		flash_message($lang->sprintf($lang->myfbconnect_success_updated, $this->old_version, $this->version), "success");
-		admin_redirect($_SERVER['HTTP_REFERER']);
+		admin_redirect('index.php');
 		
 	}
 }

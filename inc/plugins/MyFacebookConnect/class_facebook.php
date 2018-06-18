@@ -103,10 +103,12 @@ class MyFacebook
 		
 		$permissions = [
 			'public_profile',
-			'user_birthday',
-			'user_location',
 			'email'
 		];
+
+		if ($mybb->settings['myfbconnect_scopes']) {
+			$permissions = array_merge($permissions, explode(',', $mybb->settings['myfbconnect_scopes']));
+		}
 		
 		// Get the URL and redirect the user
 		$redirect = $this->facebook->getRedirectLoginHelper()->getLoginUrl($this->fallback, $permissions);
