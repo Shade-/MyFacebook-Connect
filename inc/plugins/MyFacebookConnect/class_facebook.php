@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 3.1
+ * @version 3.2
  */
 
 class MyFacebook
@@ -103,7 +103,6 @@ class MyFacebook
 		
 		$permissions = [
 			'public_profile',
-			'user_about_me',
 			'user_birthday',
 			'user_location',
 			'email'
