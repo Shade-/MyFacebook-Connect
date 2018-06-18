@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package MyFacebook Connect
- * @author  Shade <legend_k@live.it>
+ * @author  Shade <shad3-@outlook.com>
  * @license http://opensource.org/licenses/mit-license.php MIT license
  * @version 3.3
  */
