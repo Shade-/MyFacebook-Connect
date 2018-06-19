@@ -106,7 +106,7 @@ class MyFacebook
 			'email'
 		];
 
-		if ($mybb->settings['myfbconnect_scopes']) {
+		if ($mybb->settings['myfbconnect_scopes']) {
 			$permissions = array_merge($permissions, explode(',', $mybb->settings['myfbconnect_scopes']));
 		}
 
