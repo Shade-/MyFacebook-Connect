@@ -70,7 +70,7 @@ class MyFacebook
 		$this->facebook = new Facebook\Facebook([
 			'app_id' => $mybb->settings['myfbconnect_appid'],
 			'app_secret' => $mybb->settings['myfbconnect_appsecret'],
-			'default_graph_version' => 'v2.8',
+			'default_graph_version' => 'v2.12',
 			'persistent_data_handler' => 'session'
 		]);
 
