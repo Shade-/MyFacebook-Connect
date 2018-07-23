@@ -1,7 +1,7 @@
 ## MyFacebook Connect
 
-> **Latest version** 3.3  
-> **Donations** [here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=89NU4PS5BZZQE)
+> **Latest version** 3.4  
+> **Support my studies by subscribing to MyBBoost!** https://www.mybboost.com
 
 MyFacebook Connect is the ultimate solution for bridging between MyBB and Facebook, featuring smooth login and registration.
 

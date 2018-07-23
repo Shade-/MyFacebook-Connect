@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <shad3-@outlook.com>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 3.3
+ * @version 3.4
  */
 
 if (!defined('IN_MYBB')) {
@@ -48,7 +48,7 @@ function myfbconnect_info()
 		'website' => 'https://www.mybboost.com/forum-myfacebook-connect',
 		'author' => 'Shade',
 		'authorsite' => 'https://www.mybboost.com',
-		'version' => '3.3',
+		'version' => '3.4',
 		'compatibility' => '16*,18*',
 	];
 }

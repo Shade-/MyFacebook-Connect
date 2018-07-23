@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 3.3
+ * @version 3.4
  */
 
 class MyFacebook
