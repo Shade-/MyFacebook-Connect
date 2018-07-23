@@ -95,7 +95,6 @@ if ($mybb->input['action'] == 'register') {
 		'fbbday',
 		'fbsex',
 		'fbdetails',
-		'fbbio',
 		'fblocation'
 	];
 
