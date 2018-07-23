@@ -456,6 +456,10 @@ function myfbconnect_usercp()
 		require_once MYBB_ROOT . "inc/plugins/MyFacebookConnect/class_facebook.php";
 		$FacebookConnect = new MyFacebook();
 
+		$fallbackAction = ($mybb->input['action'] == 'do_myfbconnect_save_settings' or $mybb->request_method == 'post') ? 'do_myfbconnect_save_settings' : 'do_myfbconnect_link';
+
+		$FacebookConnect->set_fallback('usercp.php?action=' . $fallbackAction);
+
 	}
 
 	$settings_to_check = [
@@ -472,10 +476,7 @@ function myfbconnect_usercp()
 
 	// Authenticate
 	if ($mybb->input['action'] == 'myfbconnect_link') {
-
-		$FacebookConnect->set_fallback('usercp.php?action=do_myfbconnect_link');
 		$FacebookConnect->authenticate();
-
 	}
 
 	// Link account to his Facebook's one
