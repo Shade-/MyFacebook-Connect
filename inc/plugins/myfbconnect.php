@@ -741,7 +741,7 @@ function myfbconnect_settings_footer()
 					}
 
 					$popup = new PopupMenu("item_{$report['id']}", $lang->options);
-					$popup->add_item($lang->myfbconnect_reports_download, 'index.php?module=config-settings&action=change&gid=' . $gid . '&export_id=' . $report['id']);
+					$popup->add_item($lang->myfbconnect_reports_export, 'index.php?module=config-settings&action=change&gid=' . $gid . '&export_id=' . $report['id']);
 					$popup->add_item($lang->myfbconnect_reports_delete, 'index.php?module=config-settings&action=change&gid=' . $gid . '&delete_report=' . $report['id']);
 
 					$table->construct_cell($popup->fetch(), [
