@@ -68,6 +68,7 @@ class MyFacebook_Update
 		global $db, $mybb, $cache, $lang;
 
 		$new_settings = $drop_settings = [];
+		$updateTemplates = 0;
 
 		// Get the gid
 		$query = $db->simple_select("settinggroups", "gid", "name='myfbconnect'");
@@ -75,10 +76,7 @@ class MyFacebook_Update
 
 		// 1.0.1
 		if (version_compare($this->old_version, '1.0.1', "<")) {
-
-			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-			find_replace_templatesets('myfbconnect_register', '#' . preg_quote('<td valign="top">') . '#i', '<td valign="top">{$errors}');
-
+			$updateTemplates = 1;
 		}
 
 		// 1.0.3
@@ -109,8 +107,7 @@ class MyFacebook_Update
 				"gid" => $gid
 			];
 
-			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-			find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" value="{$lang->myfbconnect_settings_save}" />') . '#i', '<input type="submit" class=\"button\" value="{$lang->myfbconnect_settings_save}" />{$unlink}');
+			$updateTemplates = 1;
 
 		}
 
@@ -139,9 +136,7 @@ class MyFacebook_Update
 				"gid" => $gid
 			];
 
-			// Let's at least try to change that, anyway, 2.0 has backward compatibility so it doesn't matter if this fails
-			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-			find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote('fblogin') . '#i', 'login');
+			$updateTemplates = 1;
 
 		}
 
@@ -172,23 +167,15 @@ class MyFacebook_Update
 
 			$new_settings[] = [
 				"name" => "myfbconnect_keeprunning",
-				"title" => $db->escape_string($lang->setting_myfbconnect_keep_running),
-				"description" => $db->escape_string($lang->setting_myfbconnect_keep_running_desc),
+				"title" => $db->escape_string($lang->setting_myfbconnect_keeprunning),
+				"description" => $db->escape_string($lang->setting_myfbconnect_keeprunning_desc),
 				"optionscode" => "yesno",
 				"value" => 0,
 				"disporder" => 7,
 				"gid" => $gid
 			];
 
-			// 3.0 introduces major changes in templates, so at least we try to apply them with nice and old search&replace patterns
-			require_once MYBB_ROOT . "inc/adminfunctions_templates.php";
-			find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote(' &mdash; <a href="{$mybb->settings[\'bburl\']}/myfbconnect.php?action=login">{$lang->myfbconnect_login}</a>') . '#i', '{$facebook_login}');
-			find_replace_templatesets('myfbconnect_usercp_settings_linkprofile', '#' . preg_quote('<a href="usercp.php?action=fblink">{$lang->myfbconnect_link}</a>') . '#i', '<a href="usercp.php?action=myfbconnect_link"><img src="images/social/facebook.png" /></a>');
-			find_replace_templatesets('myfbconnect_register', '#' . preg_quote('{$redirectUrl}') . '#i', '{$redirect_url}');
-			find_replace_templatesets('myfbconnect_register', '#' . preg_quote('{$lang->myfbconnect_register_basicinfo}') . '#i', '{$lang->myfbconnect_register_basic_info}');
-			find_replace_templatesets('myfbconnect_usercp_menu', '#' . preg_quote('<td class="tcat">') . '#i', '<td class="tcat tcat_menu">');
-			find_replace_templatesets('myfbconnect_usercp_menu', '#' . preg_quote('{$collapsedimg[\'usercpfacebook\']}.gif') . '#i', '{$collapsedimg[\'usercpfacebook\']}.png');
-			find_replace_templatesets('myfbconnect_usercp_settings', '#' . preg_quote('<input type="submit" class="button" value="{$lang->myfbconnect_settings_save}" />') . '#i', '{$save} ');
+			$updateTemplates = 1;
 
 			// New column definition to standardize and anonymize identifiers
 			$db->modify_column('users', 'myfb_uid', 'VARCHAR(32) NOT NULL DEFAULT 0');
@@ -217,6 +204,21 @@ class MyFacebook_Update
 
 		}
 
+		// 3.4
+		if (version_compare($this->old_version, '3.4', "<")) {
+
+			$new_settings[] = [
+				"name" => "myfbconnect_use_secondary",
+				"title" => $db->escape_string($lang->setting_myfbconnect_use_secondary),
+				"description" => $db->escape_string($lang->setting_myfbconnect_use_secondary_desc),
+				"optionscode" => "yesno",
+				"value" => "1",
+				"disporder" => 6,
+				"gid" => $gid
+			];
+
+		}
+
 		if ($new_settings) {
 			$db->insert_query_multiple('settings', $new_settings);
 		}
@@ -226,6 +228,23 @@ class MyFacebook_Update
 		}
 
 		rebuild_settings();
+
+		if ($updateTemplates) {
+
+			$PL or require_once PLUGINLIBRARY;
+
+			// Update templates
+			$dir       = new DirectoryIterator(dirname(__FILE__) . '/templates');
+			$templates = [];
+			foreach ($dir as $file) {
+				if (!$file->isDot() and !$file->isDir() and pathinfo($file->getFilename(), PATHINFO_EXTENSION) == 'html') {
+					$templates[$file->getBasename('.html')] = file_get_contents($file->getPathName());
+				}
+			}
+
+			$PL->templates('myfbconnect', 'MyFacebook Connect', $templates);
+
+		}
 
 		// Update the current version number and redirect
 		$this->plugins[$this->info['name']] = [

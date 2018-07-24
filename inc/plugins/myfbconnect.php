@@ -83,25 +83,25 @@ function myfbconnect_install()
 
 	$PL->settings('myfbconnect', $lang->setting_group_myfbconnect, $lang->setting_group_myfbconnect_desc, [
 		'enabled' => [
-			'title' => $lang->setting_myfbconnect_enable,
-			'description' => $lang->setting_myfbconnect_enable_desc,
+			'title' => $lang->setting_myfbconnect_enabled,
+			'description' => $lang->setting_myfbconnect_enabled_desc,
 			'value' => '1'
 		],
 		'appid' => [
-			'title' => $lang->setting_myfbconnect_app_id,
-			'description' => $lang->setting_myfbconnect_app_id_desc,
+			'title' => $lang->setting_myfbconnect_appid,
+			'description' => $lang->setting_myfbconnect_appid_desc,
 			'value' => '',
 			'optionscode' => 'text'
 		],
 		'appsecret' => [
-			'title' => $lang->setting_myfbconnect_app_secret,
-			'description' => $lang->setting_myfbconnect_app_secret_desc,
+			'title' => $lang->setting_myfbconnect_appsecret,
+			'description' => $lang->setting_myfbconnect_appsecret_desc,
 			'value' => '',
 			'optionscode' => 'text'
 		],
 		'fastregistration' => [
-			'title' => $lang->setting_myfbconnect_fast_registration,
-			'description' => $lang->setting_myfbconnect_fast_registration_desc,
+			'title' => $lang->setting_myfbconnect_fastregistration,
+			'description' => $lang->setting_myfbconnect_fastregistration_desc,
 			'value' => '1'
 		],
 		'usergroup' => [
@@ -110,14 +110,19 @@ function myfbconnect_install()
 			'value' => '2',
 			'optionscode' => 'text'
 		],
+		'use_secondary' => [
+			'title' => $lang->setting_myfbconnect_use_secondary,
+			'description' => $lang->setting_myfbconnect_use_secondary_desc,
+			'value' => '1'
+		],
 		'verifiedonly' => [
-			'title' => $lang->setting_myfbconnect_verified_only,
-			'description' => $lang->setting_myfbconnect_verified_only_desc,
+			'title' => $lang->setting_myfbconnect_verifiedonly,
+			'description' => $lang->setting_myfbconnect_verifiedonly_desc,
 			'value' => '0'
 		],
 		'keeprunning' => [
-			'title' => $lang->setting_myfbconnect_keep_running,
-			'description' => $lang->setting_myfbconnect_keep_running_desc,
+			'title' => $lang->setting_myfbconnect_keeprunning,
+			'description' => $lang->setting_myfbconnect_keeprunning_desc,
 			'value' => '0'
 		],
 		'scopes' => [
@@ -146,8 +151,8 @@ function myfbconnect_install()
 			'value' => $lang->myfbconnect_default_passwordpm_message
 		],
 		'passwordpm_fromid' => [
-			'title' => $lang->setting_myfbconnect_passwordpm_from_id,
-			'description' => $lang->setting_myfbconnect_passwordpm_from_id_desc,
+			'title' => $lang->setting_myfbconnect_passwordpm_fromid,
+			'description' => $lang->setting_myfbconnect_passwordpm_fromid_desc,
 			'optionscode' => 'text',
 			'value' => ''
 		],

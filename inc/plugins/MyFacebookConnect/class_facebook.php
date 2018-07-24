@@ -324,8 +324,12 @@ class MyFacebook
 			return false;
 		}
 
+		$newUser = true;
 		if (!$user) {
+
 			$user = $mybb->user;
+			$newUser = false;
+
 		}
 
 		// Still no user?
@@ -333,15 +337,17 @@ class MyFacebook
 			return false;
 		}
 
-		$update = [
-			"myfb_uid" => md5($id)
-		];
-
-		$db->update_query("users", $update, "uid = {$user['uid']}");
+		$db->update_query("users", ['myfb_uid' => md5($id)], "uid = {$user['uid']}");
 
 		// Add to the usergroup
 		if ($mybb->settings['myfbconnect_usergroup']) {
+
+			if (!$newUser and !$mybb->settings['myfbconnect_use_secondary']) {
+				return true;
+			}
+
 			$this->join_usergroup($user, $mybb->settings['myfbconnect_usergroup']);
+
 		}
 
 		return true;
@@ -363,11 +369,7 @@ class MyFacebook
 			return false;
 		}
 
-		$update = [
-			"myfb_uid" => 0
-		];
-
-		$db->update_query("users", $update, "uid = {$user['uid']}");
+		$db->update_query("users", ['myfb_uid' => 0], "uid = {$user['uid']}");
 
 		// Remove from the usergroup
 		if ($mybb->settings['myfbconnect_usergroup']) {

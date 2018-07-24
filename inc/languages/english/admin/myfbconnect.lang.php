@@ -6,20 +6,22 @@ $l['myfbconnect_pluginlibrary_missing'] = "<a href=\"http://mods.mybb.com/view/p
 // Settings
 $l['setting_group_myfbconnect'] = "Facebook Login and Registration";
 $l['setting_group_myfbconnect_desc'] = "Here you can manage Facebook login and registration on your board, changing API keys and options to enable or disable certain aspects of MyFacebook Connect plugin.";
-$l['setting_myfbconnect_enable'] = "Master switch";
-$l['setting_myfbconnect_enable_desc'] = "Do you want to let your users login and register with Facebook? If an user is already registered the account will be linked to its Facebook account.";
-$l['setting_myfbconnect_app_id'] = "App ID";
-$l['setting_myfbconnect_app_id_desc'] = "Enter your App ID token from Facebook Developers site. This will be used together with the secret token to ask authorizations to your users through your app.";
-$l['setting_myfbconnect_app_secret'] = "App Secret";
-$l['setting_myfbconnect_app_secret_desc'] = "Enter your App Secret token from Facebook Developers site. This will be used together with the ID token to ask authorizations to your users through your app.";
-$l['setting_myfbconnect_fast_registration'] = "One-click registration";
-$l['setting_myfbconnect_fast_registration_desc'] = "If this option is disabled, when an user wants to register with Facebook he will be asked for permissions for your app if it's the first time he is logging in, otherwise he will be registered and logged in immediately without asking for username changes and what data to sync.";
+$l['setting_myfbconnect_enabled'] = "Master switch";
+$l['setting_myfbconnect_enabled_desc'] = "Do you want to let your users login and register with Facebook? If an user is already registered the account will be linked to its Facebook account.";
+$l['setting_myfbconnect_appid'] = "App ID";
+$l['setting_myfbconnect_appid_desc'] = "Enter your App ID token from Facebook Developers site. This will be used together with the secret token to ask authorizations to your users through your app.";
+$l['setting_myfbconnect_appsecret'] = "App Secret";
+$l['setting_myfbconnect_appsecret_desc'] = "Enter your App Secret token from Facebook Developers site. This will be used together with the ID token to ask authorizations to your users through your app.";
+$l['setting_myfbconnect_fastregistration'] = "One-click registration";
+$l['setting_myfbconnect_fastregistration_desc'] = "If this option is disabled, when an user wants to register with Facebook he will be asked for permissions for your app if it's the first time he is logging in, otherwise he will be registered and logged in immediately without asking for username changes and what data to sync.";
 $l['setting_myfbconnect_usergroup'] = "After registration usergroup";
 $l['setting_myfbconnect_usergroup_desc'] = "Select the after-registration usergroup. The user will be inserted directly into this usergroup upon registering. Also, if an existing user links his account to Facebook, this usergroup will be added to his additional groups list.";
-$l['setting_myfbconnect_verified_only'] = "Allow only verified accounts";
-$l['setting_myfbconnect_verified_only_desc'] = "Enable this option to restrict only verified Facebook users to register with Facebook. Verified users are those who confirmed their Facebook registration either with a SMS confirmation or registering with a mobile phone, so they are real people. This option is disabled by default but should be enabled in case you want to ensure that only real people register to your board. This can be seen as an anti-spam built in feature.";
-$l['setting_myfbconnect_keep_running'] = "Force operational status";
-$l['setting_myfbconnect_keep_running_desc'] = "Enable this option to let MyFacebook Connect run even if registrations are disabled. This is particularly useful if you want to allow new registrations only with Facebook.";
+$l['setting_myfbconnect_use_secondary'] = "Apply usergroup to existing users' secondary list";
+$l['setting_myfbconnect_use_secondary_desc'] = "If this option is enabled, existing users who link their account to Facebook will be granted the above usergroup within their secondary usergroups list. Otherwise, they will not be getting any usergroup upgrade.";
+$l['setting_myfbconnect_verifiedonly'] = "Allow only verified accounts";
+$l['setting_myfbconnect_verifiedonly_desc'] = "Enable this option to restrict only verified Facebook users to register with Facebook. Verified users are those who confirmed their Facebook registration either with a SMS confirmation or registering with a mobile phone, so they are real people. This option is disabled by default but should be enabled in case you want to ensure that only real people register to your board. This can be seen as an anti-spam built in feature.";
+$l['setting_myfbconnect_keeprunning'] = "Force operational status";
+$l['setting_myfbconnect_keeprunning_desc'] = "Enable this option to let MyFacebook Connect run even if registrations are disabled. This is particularly useful if you want to allow new registrations only with Facebook.";
 $l['setting_myfbconnect_scopes'] = "Scopes";
 $l['setting_myfbconnect_scopes_desc'] = "Choose the scopes sent by your application to Facebook. <b>Edit only if you know what a scope is and you know what you are doing.</b> By disabling a scope you will not be able to get the associated data from Facebook (eg.: with user_location disabled, you will not be able to get the user's location). This option is useful if you don't plan to use such data points or you don't want to submit them to Facebook's review, which may be mandatory for some or all of them.";
 $l['setting_myfbconnect_passwordpm'] = "Send PM upon registration";
@@ -28,8 +30,8 @@ $l['setting_myfbconnect_passwordpm_subject'] = "PM subject";
 $l['setting_myfbconnect_passwordpm_subject_desc'] = "Choose a default subject to use in the generated PM.";
 $l['setting_myfbconnect_passwordpm_message'] = "PM message";
   $l['setting_myfbconnect_passwordpm_message_desc'] = "Write down a default message which will be sent to the registered users when they register with Facebook. {user} and {password} are variables and refer to the username the former and the randomly generated password the latter: they should be there even if you modify the default message. HTML and BBCode are permitted here.";
-$l['setting_myfbconnect_passwordpm_from_id'] = "PM sender";
-$l['setting_myfbconnect_passwordpm_from_id_desc'] = "Insert the UID of the user who will be the sender of the PM. By default it is set to 0 which is MyBB Engine, but you can change it to whatever you like.";
+$l['setting_myfbconnect_passwordpm_fromid'] = "PM sender";
+$l['setting_myfbconnect_passwordpm_fromid_desc'] = "Insert the UID of the user who will be the sender of the PM. By default it is set to 0 which is MyBB Engine, but you can change it to whatever you like.";
 
 // Custom fields
 $l['setting_myfbconnect_fbavatar'] = "Sync avatar and cover";
