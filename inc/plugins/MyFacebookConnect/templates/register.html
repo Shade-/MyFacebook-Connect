@@ -1,70 +1,71 @@
 <html>
-<head>
-<title>{$lang->myfbconnect_register_title} - {$mybb->settings['bbname']}</title>
-{$headerinclude}
-</head>
-<body>
- {$header}
-<table width="100%" border="0" align="center">
-<tr>
-	<td valign="top">
-    {$errors}
-		<form action="myfbconnect.php?action=register" method="post">
-			<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
-			<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
-			<thead>
+	<head>
+		<title>{$lang->myfbconnect_register_title} - {$mybb->settings['bbname']}</title>
+		{$headerinclude}
+	</head>
+	<body>
+		{$header}
+		<table width="100%" border="0" align="center">
 			<tr>
-				<th class="thead" colspan="2">
-					<strong>{$lang->myfbconnect_register_title}</strong>
-				</th>
+				<td valign="top">
+			    	{$errors}
+					<form action="myfbconnect.php?action=register" method="post">
+						<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+						<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+							<thead>
+								<tr>
+									<th class="thead" colspan="2">
+										<strong>{$lang->myfbconnect_register_title}</strong>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="trow1" width="25%" valign="top">
+										{$lang->myfbconnect_register_basic_info}
+									</td>
+									<td class="trow1" valign="top">
+										<table width="100%" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}">
+										<tr>
+											<td class="trow1" width="15%">
+												{$lang->myfbconnect_register_username}
+											</td>
+											<td class="trow1">
+												<input type="text" class="textbox" name="username" value="{$user['name']}" />
+											</td>
+										</tr>
+										<tr>
+											<td class="trow2">
+												{$lang->myfbconnect_register_email}
+											</td>
+											<td class="trow2">
+												<input type="text" class="textbox" name="email" value="{$user['email']}" />
+											</td>
+										</tr>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td class="trow2" valign="top">
+										{$lang->myfbconnect_register_what_to_sync}
+									</td>
+									<td class="trow2" valign="top">
+										<table width="100%" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}">
+											{$options}
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<br />
+						<div style="text-align: center">
+							<input type="hidden" name="redirect_url" value="{$redirect_url}" />
+							<input type="submit" class="button" value="{$lang->myfbconnect_register_button}" />
+						</div>
+					</form>
+				</td>
 			</tr>
-			</thead>
-			<tbody>
-			<tr>
-				<td class="trow1" width="25%" valign="top">
-					 {$lang->myfbconnect_register_basic_info}
-				</td>
-				<td class="trow1" valign="top">
-					<table width="100%" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}">
-					<tr>
-						<td class="trow1" width="15%">
-							 {$lang->myfbconnect_register_username}
-						</td>
-						<td class="trow1">
-							 {$username}
-						</td>
-					</tr>
-					<tr>
-						<td class="trow2">
-							 {$lang->myfbconnect_register_email}
-						</td>
-						<td class="trow2">
-							 {$email}
-						</td>
-					</tr>
-					</table>
-				</td>
-			</tr>
-			<tr>
-				<td class="trow2" valign="top">
-					 {$lang->myfbconnect_register_what_to_sync}
-				</td>
-				<td class="trow2" valign="top">
-					<table width="100%" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}">
-					 {$options}
-					</table>
-				</td>
-			</tr>
-			</tbody>
-			</table>
-			<br />
-			<div style="text-align: center">
-				 {$redirect_url} <input type="submit" class="button" value="{$lang->myfbconnect_register_button}" />
-			</div>
-		</form>
-	</td>
-</tr>
-</table>
- {$footer}
-</body>
+		</table>
+		{$footer}
+	</body>
 </html>

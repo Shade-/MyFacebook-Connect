@@ -128,7 +128,7 @@ function myfbconnect_install()
         'scopes' => [
             'title' => $lang->setting_myfbconnect_scopes,
             'description' => $lang->setting_myfbconnect_scopes_desc,
-            'value' => 'user_location,user_birthday',
+            'value' => '',
             'optionscode' => 'text'
         ],
 
@@ -252,7 +252,7 @@ function myfbconnect_install()
 
     }
 
-    // Insert our templates       
+    // Insert our templates
     $dir       = new DirectoryIterator(dirname(__FILE__) . '/MyFacebookConnect/templates');
     $templates = [];
     foreach ($dir as $file) {
@@ -274,7 +274,7 @@ function myfbconnect_install()
     $cache->update('shade_plugins', $shadePlugins);
 
     // Add the login button variable to templates
-    require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';    
+    require_once MYBB_ROOT . 'inc/adminfunctions_templates.php';
     find_replace_templatesets('header_welcomeblock_guest', '#' . preg_quote('{$lang->welcome_register}</a>') . '#i', '{$lang->welcome_register}</a>{$facebook_login}');
 
 }
@@ -390,10 +390,9 @@ function myfbconnect_global()
 
     if (THIS_SCRIPT == 'usercp.php' and $mybb->input['action'] == 'myfbconnect') {
 
-        $templatelist[] = 'myfbconnect_usercp_settings';
-        $templatelist[] = 'myfbconnect_usercp_settings_linkprofile';
-        $templatelist[] = 'myfbconnect_usercp_settings_setting';
-        $templatelist[] = 'myfbconnect_usercp_showsettings';
+		$templatelist[] = 'myfbconnect_usercp_settings';
+		$templatelist[] = 'myfbconnect_usercp_settings_linkprofile';
+		$templatelist[] = 'myfbconnect_usercp_settings_setting';
 
     }
 
@@ -454,7 +453,7 @@ function myfbconnect_usercp_menu()
 }
 
 function myfbconnect_usercp()
-{    
+{
     global $mybb, $lang, $inlinesuccess;
 
     // Load API in certain areas
@@ -469,7 +468,7 @@ function myfbconnect_usercp()
 
     }
 
-    $settings_to_check = [
+    $settingsToCheck = [
         'fbavatar',
         'fbbday',
         'fbsex',
@@ -510,7 +509,7 @@ function myfbconnect_usercp()
 
         $settings = [];
 
-        foreach ($settings_to_check as $setting) {
+        foreach ($settingsToCheck as $setting) {
             $settings[$setting] = ($mybb->input[$setting] == 1) ? 1 : 0;
         }
 
@@ -549,7 +548,7 @@ function myfbconnect_usercp()
 
                 $settings = [];
 
-                foreach ($settings_to_check as $setting) {
+                foreach ($settingsToCheck as $setting) {
 
                     $settings[$setting] = ($mybb->input[$setting] == 1) ? 1 : 0;
 
@@ -558,7 +557,7 @@ function myfbconnect_usercp()
 
                 }
 
-                // Set the fallback in case the user is not authenticated    
+                // Set the fallback in case the user is not authenticated
                 $FacebookConnect->set_fallback("usercp.php?action=do_myfbconnect_save_settings" . $login_url_extra);
 
                 // This user is not logged in with Facebook
@@ -582,7 +581,7 @@ function myfbconnect_usercp()
             $user_settings = [];
 
             // Checking if admins and users want to sync that stuff
-            foreach ($settings_to_check as $setting) {
+            foreach ($settingsToCheck as $setting) {
 
                 $tempKey = 'myfbconnect_' . $setting;
 
@@ -968,11 +967,8 @@ function myfbconnect_settings_replacer($args)
     // Scopes
     if ($args['row_options']['id'] == "row_setting_myfbconnect_scopes") {
 
-        $tempKey = 'myfbconnect_scopes';
-        $list = [
-            'user_location' => 'Location',
-            'user_birthday' => 'Birthday'
-        ];
+		$tempKey = 'myfbconnect_scopes';
+		$list = [];
 
         $selected = explode(',', $mybb->settings[$tempKey]);
 
