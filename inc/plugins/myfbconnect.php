@@ -128,7 +128,7 @@ function myfbconnect_install()
 		'scopes' => [
 			'title' => $lang->setting_myfbconnect_scopes,
 			'description' => $lang->setting_myfbconnect_scopes_desc,
-			'value' => 'user_location,user_birthday',
+			'value' => '',
 			'optionscode' => 'text'
 		],
 
@@ -391,7 +391,6 @@ function myfbconnect_global()
 		$templatelist[] = 'myfbconnect_usercp_settings';
 		$templatelist[] = 'myfbconnect_usercp_settings_linkprofile';
 		$templatelist[] = 'myfbconnect_usercp_settings_setting';
-		$templatelist[] = 'myfbconnect_usercp_showsettings';
 
 	}
 
@@ -967,10 +966,7 @@ function myfbconnect_settings_replacer($args)
 	if ($args['row_options']['id'] == "row_setting_myfbconnect_scopes") {
 
 		$tempKey = 'myfbconnect_scopes';
-		$list = [
-			'user_location' => 'Location',
-			'user_birthday' => 'Birthday'
-		];
+		$list = [];
 
 		$selected = explode(',', $mybb->settings[$tempKey]);
 

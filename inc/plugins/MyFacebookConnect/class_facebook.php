@@ -231,11 +231,8 @@ class MyFacebook
 		$password = random_str($plength, true); // 2nd argument fixes complex password issue
 
 		$new_user = [
-			"username" => $user['name'],
+			"username" => htmlspecialchars_uni($user['name']),
 			"password" => $password,
-			"password2" => $password,
-			"email" => $user['email'],
-			"email2" => $user['email'],
 			"usergroup" => (int) $mybb->settings['myfbconnect_usergroup'],
 			"regip" => $session->ipaddress,
 			"longregip" => my_ip2long($session->ipaddress),
@@ -243,6 +240,10 @@ class MyFacebook
 				"hideemail" => 1
 			]
 		];
+
+		if ($user['email']) {
+			$new_user['email'] = $new_user['email2'] = htmlspecialchars_uni($user['email']);
+		}
 
 		$userhandler->set_data($new_user);
 		if ($userhandler->validate_user()) {
@@ -276,17 +277,15 @@ class MyFacebook
 				}
 
 				$pm = [
-					"subject" => $subject,
-					"message" => $message,
-					"fromid" => $fromid,
-					"toid" => [
+					'subject' => $subject,
+					'message' => $message,
+					'fromid' => $fromid,
+					'toid' => [
 						$user_info['uid']
+					],
+					'options' => [
+						'signature' => 1
 					]
-				];
-
-				// Some defaults :)
-				$pm['options'] = [
-					"signature" => 1
 				];
 
 				$pmhandler->set_data($pm);
@@ -309,8 +308,6 @@ class MyFacebook
 				'error' => $userhandler->get_friendly_errors()
 			];
 		}
-
-		return true;
 	}
 
 	/**

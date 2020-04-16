@@ -90,7 +90,7 @@ if ($mybb->input['action'] == 'register') {
 
 	$user = $FacebookConnect->get_user();
 
-	$settings_to_check = [
+	$settingsToCheck = [
 		'fbavatar',
 		'fbbday',
 		'fbsex',
@@ -105,17 +105,10 @@ if ($mybb->input['action'] == 'register') {
 		$newuser['name'] = $mybb->input['username'];
 		$newuser['email'] = $mybb->input['email'];
 
-		$settings_to_add = [];
+		$settingsToAdd = [];
 
-		foreach ($settings_to_check as $setting) {
-
-			if ($mybb->input[$setting] == 1) {
-				$settings_to_add[$setting] = 1;
-			}
-			else {
-				$settings_to_add[$setting] = 0;
-			}
-
+		foreach ($settingsToCheck as $setting) {
+			$settingsToAdd[$setting] = ($mybb->input[$setting] == 1) ? 1 : 0;
 		}
 
 		// Register him
@@ -124,10 +117,10 @@ if ($mybb->input['action'] == 'register') {
 		// Insert options and extra data and login
 		if (!$user['error']) {
 
-			$db->update_query('users', $settings_to_add, 'uid = ' . (int) $user['uid']);
+			$db->update_query('users', $settingsToAdd, 'uid = ' . (int) $user['uid']);
 
 			// Sync
-			$FacebookConnect->sync(array_merge($user, $settings_to_add));
+			$FacebookConnect->sync(array_merge($user, $settingsToAdd));
 
 			// Login
 			$FacebookConnect->login($user);
@@ -145,7 +138,7 @@ if ($mybb->input['action'] == 'register') {
 	$options = '';
 	$settings_to_build = [];
 
-	foreach ($settings_to_check as $setting) {
+	foreach ($settingsToCheck as $setting) {
 
 		$tempKey = 'myfbconnect_' . $setting;
 
@@ -177,8 +170,7 @@ if ($mybb->input['action'] == 'register') {
 
 	$lang->myfbconnect_register_basic_info = $lang->sprintf($lang->myfbconnect_register_basic_info, $user['id']);
 
-	$username = "<input type=\"text\" class=\"textbox\" name=\"username\" value=\"{$user['name']}\" />";
-	$email = "<input type=\"text\" class=\"textbox\" name=\"email\" value=\"{$user['email']}\" />";
+	$redirect_url = $_SERVER['HTTP_REFERER'];
 
 	// Show the registration page
 	eval("\$register = \"" . $templates->get("myfbconnect_register") . "\";");
