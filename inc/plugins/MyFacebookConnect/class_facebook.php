@@ -147,7 +147,7 @@ class MyFacebook
 			return $this->facebook->setDefaultAccessToken($_SESSION['facebook_access_token']);
 		}
 
-		return false;	
+		return false;
 	}
 
 	/**
@@ -234,8 +234,7 @@ class MyFacebook
 			"username" => htmlspecialchars_uni($user['name']),
 			"password" => $password,
 			"usergroup" => (int) $mybb->settings['myfbconnect_usergroup'],
-			"regip" => $session->ipaddress,
-			"longregip" => my_ip2long($session->ipaddress),
+			"regip" => $session->packedip,
 			"options" => [
 				"hideemail" => 1
 			]
@@ -613,7 +612,7 @@ class MyFacebook
 
 		}
 
-		if ($update) {			
+		if ($update) {
 			$query = $db->update_query("users", $update, "uid = {$user['uid']}");
 		}
 
@@ -724,7 +723,7 @@ class MyFacebook
 	 * Redirects the user to the page he came from
 	 */
 	public function redirect($url = '', $title = '', $message = '')
-	{	
+	{
 		if (!$url and $_SESSION['myfbconnect']['return_to_page']) {
 			$url = $_SESSION['myfbconnect']['return_to_page'];
 		}
