@@ -6,7 +6,7 @@
  * @package MyFacebook Connect
  * @author  Shade <shad3-@outlook.com>
  * @license http://opensource.org/licenses/mit-license.php MIT license
- * @version 3.5
+ * @version 3.6
  */
 
 if (!defined('IN_MYBB')) {
@@ -48,7 +48,7 @@ function myfbconnect_info()
         'website' => 'https://www.mybboost.com/forum-myfacebook-connect',
         'author' => 'Shade',
         'authorsite' => 'https://www.mybboost.com',
-        'version' => '3.5',
+        'version' => '3.6',
         'compatibility' => '16*,18*',
     ];
 }
@@ -115,11 +115,6 @@ function myfbconnect_install()
             'description' => $lang->setting_myfbconnect_use_secondary_desc,
             'value' => '1'
         ],
-        'verifiedonly' => [
-            'title' => $lang->setting_myfbconnect_verifiedonly,
-            'description' => $lang->setting_myfbconnect_verifiedonly_desc,
-            'value' => '0'
-        ],
         'keeprunning' => [
             'title' => $lang->setting_myfbconnect_keeprunning,
             'description' => $lang->setting_myfbconnect_keeprunning_desc,
@@ -184,7 +179,7 @@ function myfbconnect_install()
             'value' => '1'
         ],
 
-        // Sex
+        // Gender
         'fbsex' => [
             'title' => $lang->setting_myfbconnect_fbsex,
             'description' => $lang->setting_myfbconnect_fbsex_desc,
@@ -490,7 +485,7 @@ function myfbconnect_usercp()
 
         $FacebookConnect->save_token();
 
-        $user = $FacebookConnect->get_user('id,verified');
+        $user = $FacebookConnect->get_user(['id']);
 
         if ($user) {
             $FacebookConnect->link_user('', $user['id']);
@@ -915,8 +910,6 @@ function myfbconnect_settings_saver()
 
         $mybb->input['upsetting']['myfbconnect_usergroup'] = $mybb->input['myfbconnect_usergroup_select'];
 
-        $mybb->input['upsetting']['myfbconnect_scopes'] = trim(implode(',', $mybb->input['myfbconnect_scopes_select']));
-
     }
 }
 
@@ -961,18 +954,6 @@ function myfbconnect_settings_replacer($args)
 
         $tempKey = 'myfbconnect_usergroup';
         $args['content'] = $form->generate_group_select($tempKey."_select", [$mybb->settings[$tempKey]]);
-
-    }
-
-    // Scopes
-    if ($args['row_options']['id'] == "row_setting_myfbconnect_scopes") {
-
-		$tempKey = 'myfbconnect_scopes';
-		$list = [];
-
-        $selected = explode(',', $mybb->settings[$tempKey]);
-
-        $args['content'] = $form->generate_select_box($tempKey."_select[]", $list, $selected, ['multiple' => true]);
 
     }
 }

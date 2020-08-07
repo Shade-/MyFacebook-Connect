@@ -4,7 +4,7 @@
  * A bridge between MyBB with Facebook, featuring login, registration and more.
  *
  * @package Main API class
- * @version 3.4
+ * @version 3.6
  */
 
 class MyFacebook
@@ -70,7 +70,7 @@ class MyFacebook
 		$this->facebook = new Facebook\Facebook([
 			'app_id' => $mybb->settings['myfbconnect_appid'],
 			'app_secret' => $mybb->settings['myfbconnect_appsecret'],
-			'default_graph_version' => 'v6.0',
+			'default_graph_version' => 'v8.0',
 			'persistent_data_handler' => 'session'
 		]);
 
@@ -102,7 +102,7 @@ class MyFacebook
 		global $mybb;
 
 		$permissions = [
-			'public_profile',
+            'public_profile',
 			'email'
 		];
 
@@ -153,16 +153,35 @@ class MyFacebook
 	/**
 	 * Attempts to get the authenticated user's data
 	 */
-	public function get_user($fields = '')
+	public function get_user(array $fields = [])
 	{
 		global $lang;
 
 		if (!$fields) {
-			$fields = "id,name,email,cover,birthday,website,gender,about,location,verified";
+
+			$fields = [
+                'id',
+                'name',
+                'email',
+                'gender',
+                'birthday'
+            ];
+
 		}
 
+        // Add extra scopes
+        if ($mybb->settings['myfbconnect_scopes']) {
+
+            $scopes = explode(',', $mybb->settings['myfbconnect_scopes']);
+
+            if ($scopes['user_location']) {
+                $fields[] = 'location';
+            }
+
+        }
+
 		try {
-			$response = $this->facebook->get('/me?fields=' . $fields);
+			$response = $this->facebook->get('/me?fields=' . implode(',', $fields));
 		}
 		catch (Facebook\Exceptions\FacebookSDKException $e) {
 
@@ -382,11 +401,6 @@ class MyFacebook
 	{
 		global $mybb, $db, $session, $lang;
 
-		// Just verified allowed?
-		if ($mybb->settings['myfbconnect_verifiedonly'] and $this->user['verified'] != 1) {
-			error($lang->myfbconnect_error_verified_only);
-		}
-
 		if (!$this->user['id']) {
 			error($lang->myfbconnect_error_no_id_provided);
 		}
@@ -560,26 +574,7 @@ class MyFacebook
 
 		}
 
-		// Cover, if Profile Picture plugin is installed
-		if ($user['fbavatar'] and $this->user['cover']['source'] and $mybb->settings['myfbconnect_fbavatar'] and $db->field_exists("profilepic", "users")) {
-
-			$cover                    = $this->user['cover']['source'];
-			$update["profilepic"]     = str_replace('/s720x720/', '/p851x315/', $cover);
-			$update["profilepictype"] = "remote";
-
-			if ($mybb->usergroup['profilepicmaxdimensions']) {
-
-				list($maxwidth, $maxheight) = explode("x", my_strtolower($mybb->usergroup['profilepicmaxdimensions']));
-				$update["profilepicdimensions"] = $maxwidth . "|" . $maxheight;
-
-			}
-			else {
-				$update["profilepicdimensions"] = "851|315";
-			}
-
-		}
-
-		// Sex
+		// Gender
 		if ($user['fbsex'] and $this->user['gender'] and $mybb->settings['myfbconnect_fbsex']) {
 
 			if ($db->field_exists($sexid, "userfields")) {
@@ -603,7 +598,7 @@ class MyFacebook
 
 		}
 
-		// Location
+		// Location - Only if user_location scope is used
 		if ($user['fblocation'] and $this->user['location']['name'] and $mybb->settings['myfbconnect_fblocation']) {
 
 			if ($db->field_exists($locationid, "userfields")) {

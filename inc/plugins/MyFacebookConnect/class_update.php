@@ -67,7 +67,7 @@ class MyFacebook_Update
 	{
 		global $db, $mybb, $cache, $lang;
 
-		$new_settings = $drop_settings = [];
+		$newSettings = $dropSettings = [];
 		$updateTemplates = 0;
 
 		// Get the gid
@@ -82,7 +82,7 @@ class MyFacebook_Update
 		// 1.0.3
 		if (version_compare($this->old_version, '1.0.3', "<")) {
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_verifiedonly",
 				"title" => $db->escape_string($lang->setting_myfbconnect_verifiedonly),
 				"description" => $db->escape_string($lang->setting_myfbconnect_verifiedonly_desc),
@@ -97,7 +97,7 @@ class MyFacebook_Update
 		// 1.1
 		if (version_compare($this->old_version, '1.1', "<")) {
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_fbavatar",
 				"title" => $db->escape_string($lang->setting_myfbconnect_fbavatar),
 				"description" => $db->escape_string($lang->setting_myfbconnect_fbavatar_desc),
@@ -114,9 +114,9 @@ class MyFacebook_Update
 		// 2.0
 		if (version_compare($this->old_version, '2.0', "<")) {
 
-			$drop_settings[] = "requestpublishingperms";
+			$dropSettings[] = "requestpublishingperms";
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_postonwall",
 				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall),
 				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_desc),
@@ -126,7 +126,7 @@ class MyFacebook_Update
 				"gid" => $gid
 			];
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_postonwall_message",
 				"title" => $db->escape_string($lang->setting_myfbconnect_postonwall_message),
 				"description" => $db->escape_string($lang->setting_myfbconnect_postonwall_message_desc),
@@ -162,10 +162,10 @@ class MyFacebook_Update
 		// 3.0
 		if (version_compare($this->old_version, '3.0', "<")) {
 
-			$drop_settings[] = 'postonwall';
-			$drop_settings[] = 'postonwall_message';
+			$dropSettings[] = 'postonwall';
+			$dropSettings[] = 'postonwall_message';
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_keeprunning",
 				"title" => $db->escape_string($lang->setting_myfbconnect_keeprunning),
 				"description" => $db->escape_string($lang->setting_myfbconnect_keeprunning_desc),
@@ -189,10 +189,10 @@ class MyFacebook_Update
 				$db->drop_column('users', 'fbbio');
 			}
 
-			$drop_settings[] = 'fbbio';
-			$drop_settings[] = 'fbbiofield';
+			$dropSettings[] = 'fbbio';
+			$dropSettings[] = 'fbbiofield';
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_scopes",
 				"title" => $db->escape_string($lang->setting_myfbconnect_scopes),
 				"description" => $db->escape_string($lang->setting_myfbconnect_scopes_desc),
@@ -207,7 +207,7 @@ class MyFacebook_Update
 		// 3.4
 		if (version_compare($this->old_version, '3.4', "<")) {
 
-			$new_settings[] = [
+			$newSettings[] = [
 				"name" => "myfbconnect_use_secondary",
 				"title" => $db->escape_string($lang->setting_myfbconnect_use_secondary),
 				"description" => $db->escape_string($lang->setting_myfbconnect_use_secondary_desc),
@@ -219,12 +219,19 @@ class MyFacebook_Update
 
 		}
 
-		if ($new_settings) {
-			$db->insert_query_multiple('settings', $new_settings);
+		// 3.6
+		if (version_compare($this->old_version, '3.6', "<")) {
+
+			$dropSettings[] = 'verifiedonly';
+
 		}
 
-		if ($drop_settings) {
-			$db->delete_query('settings', "name IN ('myfbconnect_". implode("','myfbconnect_", $drop_settings) ."')");
+		if ($newSettings) {
+			$db->insert_query_multiple('settings', $newSettings);
+		}
+
+		if ($dropSettings) {
+			$db->delete_query('settings', "name IN ('myfbconnect_". implode("','myfbconnect_", $dropSettings) ."')");
 		}
 
 		rebuild_settings();

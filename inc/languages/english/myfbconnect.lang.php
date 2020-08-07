@@ -17,7 +17,6 @@ $l['myfbconnect_error_report_generated'] = "The following error occurred trying 
 <pre>{1}</pre>{2}";
 $l['myfbconnect_error_report_generated_user'] = "<br>Get in touch with an administrator as soon as possible.";
 $l['myfbconnect_error_report_generated_admin'] = "<br>A complete bug report has been generated and it's available in your administration panel under MyFacebook Connect settings page.";
-$l['myfbconnect_error_verified_only'] = "Only verified Facebook accounts are allowed to register or login. Please verify your Facebook account before tempting to register or login here again.";
 $l['myfbconnect_error_no_id_provided'] = "An unknown error occurred while fetching your data from Facebook. Either the plugin was not configured properly or this server doesn't support server-to-server connections. Please report this error to an administrator.";
 $l['myfbconnect_error_missing_access_token'] = "The access token is missing. You probably didn't authorize our application to gather your data. Approving our application is mandatory if you want to log in or register to our Forums, please retry and authorize our application when asked. If you authorized the application but you still cannot log in or register, please contact an administrator.";
 $l['myfbconnect_error_unknown'] = "An unknown error occurred.";
